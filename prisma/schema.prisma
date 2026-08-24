@@ -1,0 +1,293 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users             User[]
+  projects          Project[]
+  evidenceDocuments EvidenceDocument[]
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  name           String
+  passwordHash   String
+  role           String       @default("MEMBER") // ADMIN, MANAGER, MEMBER, REVIEWER
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reviews       Review[]
+  comments      ReviewComment[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+}
+
+model Project {
+  id             String       @id @default(uuid())
+  name           String
+  customer       String
+  deadline       DateTime?
+  rfpType        String       @default("RFP") // RFP, RFQ, Tender, Security Questionnaire
+  description    String?
+  status         String       @default("DRAFT") // DRAFT, ANALYZING, IN_REVIEW, COMPLETED
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  rfp               Rfp?
+  requirements      Requirement[]
+  pipelineRuns      PipelineRun[]
+  agentRuns         AgentRun[]
+  costRecords       CostRecord[]
+  usageMetrics      UsageMetric[]
+  exports           Export[]
+  auditLogs         AuditLog[]
+  evidenceDocuments EvidenceDocument[]
+}
+
+model Rfp {
+  id        String   @id @default(uuid())
+  title     String
+  projectId String   @unique
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents RfpDocument[]
+}
+
+model RfpDocument {
+  id         String   @id @default(uuid())
+  fileName   String
+  fileType   String // PDF, DOCX, XLSX, TXT, CSV
+  fileSize   Int
+  filePath   String
+  parsedText String?
+  rfpId      String
+  rfp        Rfp      @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model RequirementCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model Requirement {
+  id                  String               @id @default(uuid())
+  reqCode             String // e.g. REQ-001
+  projectId           String
+  project             Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category            String?              @default("General Capabilities")
+  question            String
+  mandatory           Boolean              @default(false)
+  deadline            DateTime?
+  answer              String?
+  confidence          Float                @default(0.0) // 0 - 100
+  risk                String               @default("low") // low, medium, high
+  status              String               @default("needs_review") // verified, needs_review, unsupported, rejected
+  reasoningSummary    String?
+  assignedReviewerId String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  evidences RequirementEvidence[]
+  reviews   Review[]
+  outputs   AgentOutput[]
+}
+
+model EvidenceDocument {
+  id             String       @id @default(uuid())
+  title          String
+  fileName       String
+  fileType       String
+  category       String       @default("General") // Security, Product, Legal, Commercial, Architecture
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+
+  chunks EvidenceChunk[]
+}
+
+model EvidenceChunk {
+  id                 String           @id @default(uuid())
+  evidenceDocumentId String
+  document           EvidenceDocument @relation(fields: [evidenceDocumentId], references: [id], onDelete: Cascade)
+  content            String
+  section            String?
+  pageNumber         Int?
+  chunkIndex         Int
+  embeddingJson      String? // Fallback JSON vector embedding array
+  createdAt          DateTime         @default(now())
+
+  requirementEvidences RequirementEvidence[]
+}
+
+model RequirementEvidence {
+  id             String        @id @default(uuid())
+  requirementId  String
+  requirement    Requirement   @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  chunkId        String
+  chunk          EvidenceChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  relevanceScore Float         @default(0.0)
+  createdAt      DateTime      @default(now())
+}
+
+model AgentRun {
+  id             String   @id @default(uuid())
+  agentType      String // REQUIREMENT_ANALYST, EVIDENCE_RESEARCHER, COMPLIANCE, TECHNICAL, COMMERCIAL, WRITER, VALIDATOR, QUALITY_CONTROLLER
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pipelineRunId  String?
+  status         String   @default("COMPLETED")
+  inputTokens    Int      @default(0)
+  outputTokens   Int      @default(0)
+  executionMs    Int      @default(0)
+  estimatedCost  Float    @default(0.0)
+  createdAt      DateTime @default(now())
+
+  outputs AgentOutput[]
+}
+
+model AgentOutput {
+  id            String       @id @default(uuid())
+  agentRunId    String
+  agentRun      AgentRun     @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  requirementId String?
+  requirement   Requirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  payloadJson   String
+  createdAt     DateTime     @default(now())
+
+  validations Validation[]
+}
+
+model Validation {
+  id                   String      @id @default(uuid())
+  agentOutputId        String
+  agentOutput          AgentOutput @relation(fields: [agentOutputId], references: [id], onDelete: Cascade)
+  evidenceCheck        Boolean     @default(true)
+  contradictionDetected Boolean    @default(false)
+  unsupportedClaims    Boolean     @default(false)
+  confidenceScore      Float       @default(0.0)
+  riskLevel            String      @default("low")
+  routingDecision      String      @default("AUTO_PASS") // AUTO_PASS, HUMAN_REVIEW
+  validationDetails    String?
+  createdAt            DateTime    @default(now())
+}
+
+model Review {
+  id            String      @id @default(uuid())
+  requirementId String
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  reviewerId    String
+  reviewer      User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  action        String // APPROVED, EDITED, REJECTED, REGENERATED
+  previousAnswer String?
+  newAnswer      String?
+  reason         String?
+  createdAt      DateTime    @default(now())
+
+  comments ReviewComment[]
+}
+
+model ReviewComment {
+  id        String   @id @default(uuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String
+  timestamp DateTime @default(now())
+}
+
+model Export {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  format    String // DOCX, PDF, XLSX, JSON
+  fileUrl   String
+  fileName  String
+  createdAt DateTime @default(now())
+}
+
+model PipelineRun {
+  id                String   @id @default(uuid())
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  rocketrideRunId   String
+  status            String   @default("RUNNING") // QUEUED, RUNNING, COMPLETED, FAILED
+  progress          Int      @default(0)
+  currentStep       String   @default("INGESTION")
+  totalRequirements Int      @default(0)
+  processedCount    Int      @default(0)
+  totalTokens       Int      @default(0)
+  estimatedCost     Float    @default(0.0)
+  executionMs       Int      @default(0)
+  errorLog          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model UsageMetric {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  metricName  String
+  metricValue Float
+  unit        String
+  timestamp   DateTime @default(now())
+}
+
+model CostRecord {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agentType   String
+  provider    String   @default("RocketRide/OpenAI")
+  inputTokens Int
+  outputTokens Int
+  costUsd     Float
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS, ERROR
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

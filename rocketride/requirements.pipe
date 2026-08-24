@@ -1,0 +1,37 @@
+{
+  "name": "rfp_requirements_extraction_pipeline",
+  "version": "1.0.0",
+  "description": "Requirement extraction, mandatory clause detection, category classification, and deadline identification",
+  "components": [
+    {
+      "id": "requirement_parser",
+      "provider": "rocketride.extractor.structured",
+      "config": {
+        "schema": {
+          "req_code": "string",
+          "question": "string",
+          "category": "string",
+          "mandatory": "boolean",
+          "deadline": "string"
+        },
+        "detect_tables": true
+      },
+      "input": {
+        "document_chunks": "pipeline_input.ingested_chunks"
+      }
+    },
+    {
+      "id": "classifier",
+      "provider": "rocketride.classifier.text",
+      "config": {
+        "categories": ["Security", "SLAs & Support", "Technical & Architecture", "Commercial & Pricing", "Legal & Compliance", "General Capabilities"]
+      },
+      "input": {
+        "text": "requirement_parser.output.requirements"
+      }
+    }
+  ],
+  "output": {
+    "structured_requirements": "classifier.output.classified_items"
+  }
+}

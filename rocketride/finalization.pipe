@@ -1,0 +1,34 @@
+{
+  "name": "proposal_package_finalization_pipeline",
+  "version": "1.0.0",
+  "description": "Final aggregation of verified responses, compliance matrix generation, and export package synthesis",
+  "components": [
+    {
+      "id": "matrix_builder",
+      "provider": "rocketride.aggregator.compliance_matrix",
+      "config": {
+        "include_unsupported_summary": true,
+        "include_audit_trail": true
+      },
+      "input": {
+        "verified_requirements": "pipeline_input.requirements_list"
+      }
+    },
+    {
+      "id": "export_formatter",
+      "provider": "rocketride.formatter.document",
+      "config": {
+        "export_types": ["DOCX", "PDF", "XLSX", "JSON"],
+        "template": "corporate_proposal_v1"
+      },
+      "input": {
+        "compliance_matrix": "matrix_builder.output.matrix",
+        "project_metadata": "pipeline_input.project_metadata"
+      }
+    }
+  ],
+  "output": {
+    "proposal_package": "export_formatter.output.files",
+    "summary": "matrix_builder.output.summary"
+  }
+}

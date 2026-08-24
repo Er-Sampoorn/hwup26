@@ -1,0 +1,41 @@
+{
+  "name": "specialist_agent_orchestrator",
+  "version": "1.0.0",
+  "description": "Dynamic agent router delegating tasks to Technical, Commercial, Compliance, and Response Writer specialist agents",
+  "components": [
+    {
+      "id": "agent_router",
+      "provider": "rocketride.router.conditional",
+      "config": {
+        "routes": {
+          "Security": ["compliance_agent", "technical_agent", "response_writer"],
+          "Legal & Compliance": ["compliance_agent", "response_writer"],
+          "Commercial & Pricing": ["commercial_agent", "response_writer"],
+          "Technical & Architecture": ["technical_agent", "response_writer"],
+          "SLAs & Support": ["compliance_agent", "technical_agent", "response_writer"],
+          "General Capabilities": ["general_agent", "response_writer"]
+        }
+      },
+      "input": {
+        "category": "pipeline_input.requirement.category"
+      }
+    },
+    {
+      "id": "specialist_executor",
+      "provider": "rocketride.agent.orchestrator",
+      "config": {
+        "strict_evidence_mode": true,
+        "allow_unsupported": false
+      },
+      "input": {
+        "requirement": "pipeline_input.requirement",
+        "evidence": "pipeline_input.evidence_chunks",
+        "selected_route": "agent_router.output.route"
+      }
+    }
+  ],
+  "output": {
+    "draft_response": "specialist_executor.output.generated_answer",
+    "agent_trace": "specialist_executor.output.trace_logs"
+  }
+}

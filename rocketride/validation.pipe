@@ -1,0 +1,58 @@
+{
+  "name": "response_validation_and_routing_pipeline",
+  "version": "1.0.0",
+  "description": "Hallucination inspection, deterministic confidence scoring (0-100), risk assignment, and human review routing",
+  "components": [
+    {
+      "id": "hallucination_checker",
+      "provider": "rocketride.validator.factuality",
+      "config": {
+        "check_contradictions": true,
+        "verify_unsupported_claims": true,
+        "require_source_attribution": true
+      },
+      "input": {
+        "draft_answer": "pipeline_input.draft_response",
+        "requirement": "pipeline_input.requirement",
+        "evidence": "pipeline_input.evidence_chunks"
+      }
+    },
+    {
+      "id": "confidence_calculator",
+      "provider": "rocketride.evaluator.confidence",
+      "config": {
+        "weights": {
+          "evidence_relevance": 40,
+          "evidence_freshness": 15,
+          "requirement_coverage": 20,
+          "agent_agreement": 15
+        },
+        "contradiction_penalty": 10,
+        "high_confidence_threshold": 90,
+        "medium_confidence_threshold": 75
+      },
+      "input": {
+        "factuality_result": "hallucination_checker.output"
+      }
+    },
+    {
+      "id": "human_routing_gate",
+      "provider": "rocketride.gate.human_review",
+      "config": {
+        "mandatory_categories": ["Legal & Compliance", "Commercial & Pricing", "Security guarantees", "Contractual SLAs"],
+        "auto_pass_min_confidence": 90
+      },
+      "input": {
+        "confidence_score": "confidence_calculator.output.final_score",
+        "category": "pipeline_input.requirement.category",
+        "mandatory": "pipeline_input.requirement.mandatory"
+      }
+    }
+  ],
+  "output": {
+    "validation": "hallucination_checker.output",
+    "confidence": "confidence_calculator.output",
+    "routing_decision": "human_routing_gate.output.decision",
+    "status": "human_routing_gate.output.recommended_status"
+  }
+}

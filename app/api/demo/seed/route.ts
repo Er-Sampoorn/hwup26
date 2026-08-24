@@ -1,0 +1,16 @@
+import { NextResponse } from 'next/server';
+import { seedDemoDatabase } from '@/demo/seed';
+
+export async function POST() {
+  try {
+    const result = await seedDemoDatabase();
+    return NextResponse.json({
+      success: true,
+      message: 'Demo dataset seeded successfully!',
+      projectId: result.projectId,
+      requirementCount: result.requirementCount,
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Failed to seed demo dataset' }, { status: 500 });
+  }
+}

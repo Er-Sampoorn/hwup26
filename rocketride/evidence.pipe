@@ -1,0 +1,38 @@
+{
+  "name": "evidence_retrieval_pipeline",
+  "version": "1.0.0",
+  "description": "Company knowledge base searching, hybrid semantic & keyword ranking, evidence gap detection",
+  "components": [
+    {
+      "id": "vector_retriever",
+      "provider": "rocketride.retriever.hybrid",
+      "config": {
+        "top_k": 5,
+        "min_relevance": 0.65,
+        "weights": {
+          "semantic": 0.7,
+          "keyword": 0.3
+        }
+      },
+      "input": {
+        "query": "pipeline_input.requirement_question",
+        "knowledge_base_id": "pipeline_input.organization_id"
+      }
+    },
+    {
+      "id": "evidence_ranker",
+      "provider": "rocketride.ranker.cross_encoder",
+      "config": {
+        "max_results": 3,
+        "freshness_boost": true
+      },
+      "input": {
+        "candidates": "vector_retriever.output.documents",
+        "query": "pipeline_input.requirement_question"
+      }
+    }
+  ],
+  "output": {
+    "matched_evidence": "evidence_ranker.output.ranked_chunks"
+  }
+}

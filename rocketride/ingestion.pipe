@@ -1,0 +1,46 @@
+{
+  "name": "rfp_ingestion_pipeline",
+  "version": "1.0.0",
+  "description": "Multi-format RFP and evidence document ingestion, metadata extraction, and chunking pipeline",
+  "components": [
+    {
+      "id": "file_reader",
+      "provider": "rocketride.document.parser",
+      "config": {
+        "formats": ["pdf", "docx", "xlsx", "csv", "txt"],
+        "preserve_metadata": true,
+        "ocr_fallback": true
+      },
+      "input": {
+        "file_source": "pipeline_input.documents"
+      }
+    },
+    {
+      "id": "text_cleaner",
+      "provider": "rocketride.text.preprocessor",
+      "config": {
+        "remove_headers_footers": true,
+        "normalize_whitespace": true
+      },
+      "input": {
+        "raw_text": "file_reader.output.text"
+      }
+    },
+    {
+      "id": "document_chunker",
+      "provider": "rocketride.chunker.semantic",
+      "config": {
+        "chunk_size": 800,
+        "overlap": 150,
+        "strategy": "section_aware"
+      },
+      "input": {
+        "document": "text_cleaner.output.cleaned_text"
+      }
+    }
+  ],
+  "output": {
+    "chunks": "document_chunker.output.chunks",
+    "metadata": "file_reader.output.metadata"
+  }
+}

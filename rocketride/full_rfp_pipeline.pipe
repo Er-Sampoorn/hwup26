@@ -1,0 +1,71 @@
+{
+  "name": "full_rfp_automation_pipeline",
+  "version": "1.0.0",
+  "description": "Master end-to-end BidForge AI proposal automation pipeline orchestrating ingestion, extraction, evidence matching, specialist routing, validation, and proposal package output",
+  "pipeline_dependencies": [
+    "rocketride/ingestion.pipe",
+    "rocketride/requirements.pipe",
+    "rocketride/evidence.pipe",
+    "rocketride/agents.pipe",
+    "rocketride/validation.pipe",
+    "rocketride/finalization.pipe"
+  ],
+  "components": [
+    {
+      "id": "stage_1_ingest",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/ingestion.pipe"
+      },
+      "input": {
+        "documents": "pipeline_input.raw_files"
+      }
+    },
+    {
+      "id": "stage_2_extract_requirements",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/requirements.pipe"
+      },
+      "input": {
+        "ingested_chunks": "stage_1_ingest.output.chunks"
+      }
+    },
+    {
+      "id": "stage_3_evidence_and_agents",
+      "provider": "rocketride.pipeline.batch_map",
+      "config": {
+        "concurrency": 5,
+        "evidence_pipe": "rocketride/evidence.pipe",
+        "agents_pipe": "rocketride/agents.pipe",
+        "validation_pipe": "rocketride/validation.pipe"
+      },
+      "input": {
+        "requirements": "stage_2_extract_requirements.output.structured_requirements",
+        "organization_id": "pipeline_input.organization_id"
+      }
+    },
+    {
+      "id": "stage_4_finalize",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/finalization.pipe"
+      },
+      "input": {
+        "requirements_list": "stage_3_evidence_and_agents.output.processed_items",
+        "project_metadata": "pipeline_input.project_metadata"
+      }
+    }
+  ],
+  "output": {
+    "project_id": "pipeline_input.project_id",
+    "processed_requirements": "stage_3_evidence_and_agents.output.processed_items",
+    "proposal_package": "stage_4_finalize.output.proposal_package",
+    "metrics": {
+      "total_requirements": "stage_2_extract_requirements.output.total_count",
+      "processed_count": "stage_3_evidence_and_agents.output.processed_count",
+      "auto_passed_count": "stage_3_evidence_and_agents.output.auto_passed_count",
+      "review_needed_count": "stage_3_evidence_and_agents.output.review_needed_count"
+    }
+  }
+}

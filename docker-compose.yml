@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  bidforge-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - ROCKETRIDE_URI=https://api.rocketride.ai/v1"
+      - ROCKETRIDE_APIKEY=rr_live_demo_key_bidforge_2026
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    restart: always
