@@ -6,8 +6,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const pipelineRun = await db.pipelineRun.findUnique({
       where: { id: params.id },
       include: {
-        project: {
-          select: { id: true, name: true },
+        location: {
+          select: { id: true, name: true, code: true },
         },
       },
     });

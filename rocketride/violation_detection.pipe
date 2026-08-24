@@ -1,0 +1,32 @@
+{
+  "name": "multimodal_violation_detection_pipeline",
+  "version": "1.0.0",
+  "description": "Multimodal visual & textual violation detection matched against brand standards",
+  "components": [
+    {
+      "id": "visual_inspector",
+      "provider": "rocketride.vision.detector",
+      "config": {
+        "categories": ["Cleanliness", "Food Safety", "Branding", "Uniform", "Store Appearance", "Safety & Exits", "Equipment"],
+        "min_confidence": 0.70
+      },
+      "input": {
+        "frames": "pipeline_input.media_frames"
+      }
+    },
+    {
+      "id": "standards_matcher",
+      "provider": "rocketride.matcher.standards",
+      "config": {
+        "strict_evidence_grounding": true
+      },
+      "input": {
+        "observations": "visual_inspector.output.detections",
+        "brand_standards": "pipeline_input.brand_standards"
+      }
+    }
+  ],
+  "output": {
+    "detected_violations": "standards_matcher.output.matched_violations"
+  }
+}

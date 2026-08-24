@@ -6,9 +6,9 @@ export async function POST() {
     const result = await seedDemoDatabase();
     return NextResponse.json({
       success: true,
-      message: 'Demo dataset seeded successfully!',
-      projectId: result.projectId,
-      requirementCount: result.requirementCount,
+      message: 'FranchiseGuard AI demo dataset seeded successfully!',
+      heroLocationId: result.heroLocationId,
+      locationCount: result.locationCount,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Failed to seed demo dataset' }, { status: 500 });

@@ -1,156 +1,138 @@
-# BidForge AI — Production-Ready AI RFP & Tender Automation Platform
+# FranchiseGuard AI — Multimodal Franchise Compliance Intelligence Platform
 
-> **Tagline:** Evidence-backed RFP automation for high-volume proposal teams.  
-> **Core AI Orchestration Engine:** Powered natively by **RocketRide** declarative `.pipe` pipelines.
+> **Problem Statement #18:** Franchise Standards Auditor  
+> **Tagline:** AI-powered continuous compliance intelligence for every franchise location.  
+> **Core AI Engine:** Powered natively by **RocketRide** declarative `.pipe` pipelines.
 
 ---
 
 ## 🚀 Overview
 
-**BidForge AI** is an enterprise proposal automation SaaS platform built for presales, bid, and procurement teams responding to large volumes of RFPs, RFQs, tenders, and security questionnaires.
+**FranchiseGuard AI** is an enterprise AI-native compliance intelligence SaaS platform designed for franchise operations managers, regional directors, and compliance officers overseeing hundreds of independently operated locations.
 
-BidForge AI ingests multi-format RFP documents, extracts structured requirements, retrieves relevant company evidence from an indexed knowledge base, delegates tasks across **8 specialist AI agents**, deterministically scores confidence, routes uncertain or high-risk items to human reviewers, and generates submission-ready proposal packages (**DOCX**, **PDF**, **Excel Compliance Matrix**, **JSON**).
-
----
-
-## 🎯 Key Product Principle: ZERO HALLUCINATION
-
-> **AI MUST NOT CONFIDENTLY INVENT INFORMATION.**
-
-If the system cannot find sufficient evidence in the company knowledge base, it explicitly outputs:
-```
-"Insufficient evidence — human review required."
-```
-- **Confidence Score:** Assigned $\le 50\%$
-- **Status:** `unsupported` / `needs_review`
-- **Risk:** `high` / `medium`
-- **Routing:** Automatically sent to the **Human Review Inbox**.
+Instead of relying solely on periodic physical inspections, FranchiseGuard AI continuously audits locations using location-submitted photos, videos, inspection reports, customer review feeds, and operational signals. It automatically detects compliance violations, calculates multi-factor location risk, detects recurring issues, recommends corrective action plans, and routes formal enforcement decisions (cure notices, formal defaults) to human managers.
 
 ---
 
-## 🏗️ Architecture & RocketRide Role
+## 🎯 Key Product Principle: ZERO FALSE ACCUSATION GUARANTEE
+
+> **NO EVIDENCE = NO VIOLATION CLAIM.**
+
+Every detected violation includes:
+- Source visual or document evidence
+- AI confidence score ($\ge 90\%$)
+- Mapped Brand Standard code & severity rating
+- Recurrence history count
+- Human review approval for formal default packages & cure notices
+
+---
+
+## 🏗️ RocketRide Multimodal AI Architecture
 
 ```
-                     ┌───────────────────────┐
-                     │       WEB APP         │
-                     │ Next.js 14 / Tailwind │
-                     └───────────┬───────────┘
+                    ┌─────────────────────────┐
+                    │       WEB DASHBOARD      │
+                    │ Next.js 14 / Tailwind UI │
+                    └────────────┬────────────┘
                                  │
                                  ▼
-                     ┌───────────────────────┐
-                     │      API SERVER       │
-                     │ Next.js API / Node.js │
-                     │ Auth, Projects, RFPs  │
-                     │ Reviews, Exports      │
-                     └───────────┬───────────┘
+                    ┌─────────────────────────┐
+                    │       API SERVER         │
+                    │ Auth / Locations / Data  │
+                    └────────────┬────────────┘
                                  │
                                  ▼
-                     ┌───────────────────────┐
-                     │   ROCKETRIDE ENGINE   │
-                     │  Orchestrator (.pipe) │
-                     │ Ingestion, Extraction │
-                     │ Routing, Validation   │
-                     └───────────┬───────────┘
+                    ┌─────────────────────────┐
+                    │     ROCKETRIDE ENGINE    │
+                    │  AI ORCHESTRATOR (.pipe) │
+                    └────────────┬────────────┘
                                  │
-          ┌──────────────────────┼───────────────────────┐
-          ▼                      ▼                       ▼
-   Requirement Agent       Evidence Agent          Compliance Agent
-          │                      │                       │
-          └──────────────────────┼───────────────────────┘
+   ┌─────────────────────────────┼────────────────────────────┐
+   │                             │                            │
+   ▼                             ▼                            ▼
+IMAGE AGENT                  VIDEO AGENT                  TEXT AGENT
+   │                             │                            │
+   └─────────────────────────────┼────────────────────────────┘
                                  ▼
-                          Drafting Agent
+                          STANDARDS AGENT
                                  │
                                  ▼
-                          Validation Agent
+                          VIOLATION ANALYST
                                  │
-                       ┌─────────┴─────────┐
-                       ▼                   ▼
-                 High Confidence      Low Confidence
-                       │                   │
-                       ▼                   ▼
-                   Auto Pass          HUMAN REVIEW
-                                           │
-                                           ▼
-                                   Approved Response
-                                           │
-                                           ▼
-                                Final Proposal Package
+                                 ▼
+                         RISK SCORING AGENT
+                                 │
+                                 ▼
+                     RECURRENCE DETECTION AGENT
+                                 │
+                                 ▼
+                          ACTION RECOMMENDER
+                                 │
+                                 ▼
+                             VALIDATOR
+                                 │
+                   ┌─────────────┴─────────────┐
+                   ▼                           ▼
+               LOW RISK                    HIGH RISK
+                   │                           │
+                   ▼                           ▼
+              AUTO ACTION                 HUMAN REVIEW
+                                               │
+                                               ▼
+                                     APPROVE / EDIT / REJECT
+                                               │
+                                               ▼
+                                      FORMAL CURE NOTICE
+                                               │
+                                               ▼
+                                     FINAL COMPLIANCE REPORT
 ```
 
-### RocketRide `.pipe` Pipelines Directory (`/rocketride`)
+### RocketRide `.pipe` Pipelines (`/rocketride`)
 
 | Pipeline File | Description |
 | :--- | :--- |
-| [`full_rfp_pipeline.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/full_rfp_pipeline.pipe) | Master end-to-end orchestration pipeline. |
-| [`ingestion.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/ingestion.pipe) | Multi-format document parser, text extraction, and semantic chunker. |
-| [`requirements.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/requirements.pipe) | Requirement extraction, classification, and mandatory detection. |
-| [`evidence.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/evidence.pipe) | Hybrid vector/keyword knowledge base search and chunk ranking. |
-| [`agents.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/agents.pipe) | Specialist agent router (Technical, Commercial, Compliance, Writer). |
-| [`validation.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/validation.pipe) | Factuality check, deterministic confidence scoring (0-100), risk assignment. |
-| [`finalization.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/finalization.pipe) | Aggregation into compliance matrix and export package synthesis. |
+| [`full_audit_pipeline.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/full_audit_pipeline.pipe) | Master end-to-end audit orchestration pipeline. |
+| [`media_ingestion.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/media_ingestion.pipe) | Photo validation, video frame sampling, and inspection OCR parser. |
+| [`inspection_pipeline.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/inspection_pipeline.pipe) | Scheduled audit scheduling and customer complaint feed analyzer. |
+| [`violation_detection.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/violation_detection.pipe) | Multimodal visual/text violation detector matched against brand standards. |
+| [`risk_scoring.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/risk_scoring.pipe) | Multi-factor risk calculator (0-100) with transparent driver attribution. |
+| [`recurrence_analysis.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/recurrence_analysis.pipe) | Cross-inspection recurrence detector flagging repeated failures. |
+| [`human_review.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/human_review.pipe) | Human approval gate for high-risk cure notices and formal warnings. |
+| [`reinspection.pipe`](file:///c:/Users/tripa/OneDrive/Desktop/my%20projects/hwup26/rocketride/reinspection.pipe) | Before-and-after evidence verification pipeline. |
 
 ---
 
-## 🛠️ Tech Stack
+## 📦 Quick Start & Execution
 
-- **Frontend:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Lucide Icons, Framer Motion.
-- **Backend:** Node.js, Next.js API Routes, TypeScript.
-- **Database & ORM:** SQLite via Prisma ORM (Zero-dependency local setup, PostgreSQL compatible).
-- **Document Parsers:** `pdf-parse`, `mammoth` (DOCX), `xlsx` (Excel & CSV).
-- **Exporters:** `docx` (Word), `jspdf` (PDF), `xlsx` (Excel Compliance Matrix), JSON.
-- **AI Engine:** RocketRide `.pipe` Orchestrator with fallback execution runner and Cloud API hooks.
-
----
-
-## 📦 Quick Start & Installation
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Push Database Schema
+### 1. Sync Database Schema
 ```bash
 npx prisma db push
 ```
 
-### 3. Seed Demo Dataset (100+ Requirements, 20+ Evidence Docs)
+### 2. Seed Demo Dataset (50 Locations, 200+ Assets, 100+ Reviews)
 ```bash
 npm run seed
 ```
 
-### 4. Run Automated Test Suite
+### 3. Run Test Suite
 ```bash
 npm test
 ```
 
-### 5. Start Development Server
+### 4. Build Next.js Production App
+```bash
+npm run build
+```
+
+### 5. Start Application
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) and click **"Load Franchise Demo Dataset"** or **"Instant Demo Login"** to audit Location #042 (4-time recurring violation, Risk 82/100)!
 
 ---
 
-## 📊 Demo Workflow & Instant Verification
-
-1. Click **"Load Demo Dataset"** in the top navigation bar or click **"Instant Demo Login"** on `/login`.
-2. Open the **"Acme Telecom Enterprise RFP 2026"** workspace.
-3. Click **"Analyze RFP with RocketRide"** to view real-time pipeline visualizer, node status, token counts, and cost estimation.
-4. Explore the **Requirements Matrix** with multi-filters (`Category`, `Status`, `Risk`, `Mandatory`, `Search`).
-5. Open **REQ-001** (Security) or **REQ-042** (Missing Evidence) to inspect evidence snippets, page/section references, and agent trace logs.
-6. Approve, edit, or reject responses in the **Review Inbox**.
-7. Export submission-ready packages in **DOCX**, **PDF**, **Excel**, or **JSON**.
-
----
-
-## 🐳 Docker Deployment
-
-```bash
-docker-compose up --build -d
-```
-
----
-
-## 📄 License
-Enterprise Commercial License — BidForge AI.
+## 🌐 GitHub Repository & Deployment
+- **GitHub Repo:** [https://github.com/Er-Sampoorn/hwup26.git](https://github.com/Er-Sampoorn/hwup26.git)
+- **Deployment Platform:** Vercel (Next.js 14)

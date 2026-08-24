@@ -1,0 +1,37 @@
+{
+  "name": "location_risk_scoring_pipeline",
+  "version": "1.0.0",
+  "description": "Multi-factor transparent risk score calculator (0-100) with driver attribution",
+  "components": [
+    {
+      "id": "risk_calculator",
+      "provider": "rocketride.evaluator.risk",
+      "config": {
+        "weights": {
+          "severity": 0.30,
+          "frequency": 0.20,
+          "recurrence": 0.20,
+          "evidence_confidence": 0.15,
+          "customer_signal": 0.10,
+          "operational_signal": 0.05
+        },
+        "thresholds": {
+          "CRITICAL": 80,
+          "HIGH": 60,
+          "MEDIUM": 30,
+          "LOW": 0
+        }
+      },
+      "input": {
+        "violations": "pipeline_input.violations",
+        "customer_signals": "pipeline_input.customer_signals",
+        "operational_signals": "pipeline_input.operational_signals"
+      }
+    }
+  ],
+  "output": {
+    "risk_score": "risk_calculator.output.score",
+    "risk_category": "risk_calculator.output.category",
+    "drivers": "risk_calculator.output.drivers"
+  }
+}

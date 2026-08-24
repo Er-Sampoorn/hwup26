@@ -14,9 +14,10 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users             User[]
-  projects          Project[]
-  evidenceDocuments EvidenceDocument[]
+  users            User[]
+  locations        Location[]
+  standards        Standard[]
+  franchiseOwners FranchiseOwner[]
 }
 
 model User {
@@ -24,7 +25,7 @@ model User {
   email          String       @unique
   name           String
   passwordHash   String
-  role           String       @default("MEMBER") // ADMIN, MANAGER, MEMBER, REVIEWER
+  role           String       @default("COMPLIANCE_OFFICER") // OPS_MANAGER, REGIONAL_MANAGER, COMPLIANCE_OFFICER, FRANCHISE_OWNER
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
@@ -36,54 +37,55 @@ model User {
   notifications Notification[]
 }
 
-model Project {
+model FranchiseOwner {
   id             String       @id @default(uuid())
   name           String
-  customer       String
-  deadline       DateTime?
-  rfpType        String       @default("RFP") // RFP, RFQ, Tender, Security Questionnaire
-  description    String?
-  status         String       @default("DRAFT") // DRAFT, ANALYZING, IN_REVIEW, COMPLETED
+  email          String
+  phone          String?
+  companyName    String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
 
-  rfp               Rfp?
-  requirements      Requirement[]
-  pipelineRuns      PipelineRun[]
-  agentRuns         AgentRun[]
-  costRecords       CostRecord[]
-  usageMetrics      UsageMetric[]
-  exports           Export[]
-  auditLogs         AuditLog[]
-  evidenceDocuments EvidenceDocument[]
+  locations Location[]
 }
 
-model Rfp {
-  id        String   @id @default(uuid())
-  title     String
-  projectId String   @unique
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Location {
+  id               String          @id @default(uuid())
+  code             String          @unique // e.g. LOC-042
+  name             String
+  address          String
+  city             String
+  state            String
+  region           String          @default("North East") // North East, South East, Midwest, Central, West Coast
+  manager          String
+  openingDate      DateTime?
+  complianceScore  Float           @default(100.0) // 0 - 100%
+  riskScore        Float           @default(0.0) // 0 - 100
+  riskCategory     String          @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  lastInspectionAt DateTime?
+  nextInspectionAt DateTime?
+  organizationId   String
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerId          String?
+  owner            FranchiseOwner? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
-  documents RfpDocument[]
+  inspections         Inspection[]
+  violations          Violation[]
+  mediaAssets         MediaAsset[]
+  riskScores          RiskScore[]
+  correctiveActions   CorrectiveAction[]
+  customerFeedbacks   CustomerFeedback[]
+  operationalSignals  OperationalSignal[]
+  pipelineRuns        PipelineRun[]
+  agentRuns           AgentRun[]
+  auditLogs           AuditLog[]
+  exports             Export[]
 }
 
-model RfpDocument {
-  id         String   @id @default(uuid())
-  fileName   String
-  fileType   String // PDF, DOCX, XLSX, TXT, CSV
-  fileSize   Int
-  filePath   String
-  parsedText String?
-  rfpId      String
-  rfp        Rfp      @relation(fields: [rfpId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
-}
-
-model RequirementCategory {
+model StandardCategory {
   id          String   @id @default(uuid())
   name        String   @unique
   code        String   @unique
@@ -91,92 +93,198 @@ model RequirementCategory {
   createdAt   DateTime @default(now())
 }
 
-model Requirement {
-  id                  String               @id @default(uuid())
-  reqCode             String // e.g. REQ-001
-  projectId           String
-  project             Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  category            String?              @default("General Capabilities")
-  question            String
-  mandatory           Boolean              @default(false)
-  deadline            DateTime?
-  answer              String?
-  confidence          Float                @default(0.0) // 0 - 100
-  risk                String               @default("low") // low, medium, high
-  status              String               @default("needs_review") // verified, needs_review, unsupported, rejected
-  reasoningSummary    String?
+model Standard {
+  id                String       @id @default(uuid())
+  code              String       @unique // e.g. BRAND-014, CLEAN-002
+  title             String
+  category          String       @default("Cleanliness") // Cleanliness, Food Safety, Branding, Uniform, Store Appearance, Safety
+  description       String
+  severity          String       @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  requiredEvidence  String       @default("Photo") // Photo, Video, Document
+  remediationHours  Int          @default(48) // Hours allowed to remediate
+  escalationPolicy  String?
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt         DateTime     @default(now())
+
+  violations Violation[]
+}
+
+model Inspection {
+  id           String    @id @default(uuid())
+  locationId   String
+  location     Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  inspector    String    @default("AI Multimodal Engine")
+  type         String    @default("ROUTINE") // ROUTINE, SURPRISE, REINSPECTION, COMPLAINT_TRIGGERED
+  status       String    @default("COMPLETED") // SCHEDULED, IN_PROGRESS, COMPLETED
+  score        Float     @default(85.0)
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  violations  Violation[]
+  mediaAssets MediaAsset[]
+}
+
+model MediaAsset {
+  id           String      @id @default(uuid())
+  locationId   String
+  location     Location    @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  inspectionId String?
+  inspection   Inspection? @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  fileName     String
+  fileType     String // IMAGE, VIDEO, DOCUMENT
+  mimeType     String
+  fileUrl      String
+  capturedAt   DateTime    @default(now())
+  metadataJson String?
+
+  analysis   MediaAnalysis?
+  evidences  ViolationEvidence[]
+}
+
+model MediaAnalysis {
+  id           String     @id @default(uuid())
+  mediaAssetId String     @unique
+  mediaAsset   MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  summaryText  String
+  detectedJson String // Array of detected objects, bounding boxes, or document text
+  confidence   Float      @default(0.9)
+  createdAt    DateTime   @default(now())
+}
+
+model Violation {
+  id                 String     @id @default(uuid())
+  violationCode      String // e.g. VIOL-8921
+  locationId         String
+  location           Location   @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  inspectionId       String?
+  inspection         Inspection?@relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  standardId         String
+  standard           Standard   @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  description        String
+  severity           String     @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  status             String     @default("NEEDS_REVIEW") // DETECTED, CONFIRMED, NEEDS_REVIEW, ACTION_REQUIRED, CORRECTION_SUBMITTED, REINSPECTION_REQUIRED, RESOLVED, ESCALATED, REJECTED
+  isRecurring        Boolean    @default(false)
+  recurrenceCount    Int        @default(1)
+  confidence         Float      @default(90.0) // 0 - 100
+  aiExplanation      String?
   assignedReviewerId String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
-  evidences RequirementEvidence[]
-  reviews   Review[]
-  outputs   AgentOutput[]
+  evidences         ViolationEvidence[]
+  correctiveActions CorrectiveAction[]
+  reviews           Review[]
+  outputs           AgentOutput[]
 }
 
-model EvidenceDocument {
-  id             String       @id @default(uuid())
-  title          String
-  fileName       String
-  fileType       String
-  category       String       @default("General") // Security, Product, Legal, Commercial, Architecture
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  createdAt      DateTime     @default(now())
-
-  chunks EvidenceChunk[]
+model ViolationEvidence {
+  id           String     @id @default(uuid())
+  violationId  String
+  violation    Violation  @relation(fields: [violationId], references: [id], onDelete: Cascade)
+  mediaAssetId String
+  mediaAsset   MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  snippetText  String?
+  boundingBox  String? // e.g. JSON coordinates
+  confidence   Float      @default(0.9)
+  createdAt    DateTime   @default(now())
 }
 
-model EvidenceChunk {
+model RiskScore {
+  id           String   @id @default(uuid())
+  locationId   String
+  location     Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  score        Float    // 0 - 100
+  category     String   @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  driversJson  String   // Breakdown of risk components
+  calculatedAt DateTime @default(now())
+}
+
+model RiskEvent {
+  id          String   @id @default(uuid())
+  locationId  String
+  eventType   String // RECURRING_VIOLATION, CRITICAL_SAFETY, CUSTOMER_COMPLAINT_SPIKE
+  description String
+  impactScore Float
+  createdAt   DateTime @default(now())
+}
+
+model CorrectiveAction {
+  id               String         @id @default(uuid())
+  actionCode       String // e.g. ACT-492
+  violationId      String
+  violation        Violation      @relation(fields: [violationId], references: [id], onDelete: Cascade)
+  locationId       String
+  location         Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  dueAt            DateTime
+  status           String         @default("PENDING") // PENDING, IN_PROGRESS, PROOF_SUBMITTED, APPROVED, OVERDUE
+  proofEvidenceUrl String?
+  remediationNotes String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  reinspections Reinspection[]
+}
+
+model Reinspection {
   id                 String           @id @default(uuid())
-  evidenceDocumentId String
-  document           EvidenceDocument @relation(fields: [evidenceDocumentId], references: [id], onDelete: Cascade)
-  content            String
-  section            String?
-  pageNumber         Int?
-  chunkIndex         Int
-  embeddingJson      String? // Fallback JSON vector embedding array
+  correctiveActionId String
+  correctiveAction   CorrectiveAction @relation(fields: [correctiveActionId], references: [id], onDelete: Cascade)
+  scheduledAt        DateTime
+  status             String           @default("SCHEDULED") // SCHEDULED, PASSED, FAILED
+  aiMatchScore       Float?
+  notes              String?
   createdAt          DateTime         @default(now())
-
-  requirementEvidences RequirementEvidence[]
 }
 
-model RequirementEvidence {
-  id             String        @id @default(uuid())
-  requirementId  String
-  requirement    Requirement   @relation(fields: [requirementId], references: [id], onDelete: Cascade)
-  chunkId        String
-  chunk          EvidenceChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
-  relevanceScore Float         @default(0.0)
-  createdAt      DateTime      @default(now())
+model CustomerFeedback {
+  id          String   @id @default(uuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  source      String   @default("Google Reviews") // Google, Yelp, Customer Survey, Complaint Portal
+  rating      Float?
+  reviewText  String
+  sentiment   String   @default("NEGATIVE") // POSITIVE, NEUTRAL, NEGATIVE
+  category    String   @default("Cleanliness")
+  processedAt DateTime @default(now())
+}
+
+model OperationalSignal {
+  id          String   @id @default(uuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  signalType  String // POS_ANOMALY, HIGH_REFUND_RATE, UNUSUAL_HOURS, OVERDUE_ACTION
+  value       Float
+  unit        String
+  capturedAt  DateTime @default(now())
 }
 
 model AgentRun {
-  id             String   @id @default(uuid())
-  agentType      String // REQUIREMENT_ANALYST, EVIDENCE_RESEARCHER, COMPLIANCE, TECHNICAL, COMMERCIAL, WRITER, VALIDATOR, QUALITY_CONTROLLER
-  projectId      String
-  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  pipelineRunId  String?
-  status         String   @default("COMPLETED")
-  inputTokens    Int      @default(0)
-  outputTokens   Int      @default(0)
-  executionMs    Int      @default(0)
-  estimatedCost  Float    @default(0.0)
-  createdAt      DateTime @default(now())
+  id            String   @id @default(uuid())
+  agentType     String // MEDIA_INSPECTOR, DOCUMENT_ANALYST, CUSTOMER_SENTIMENT, STANDARDS_MATCHER, VIOLATION_ANALYST, RISK_ANALYST, RECURRENCE_ANALYST, ACTION_PLANNER, VALIDATOR, REPORT_GENERATOR
+  locationId    String
+  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  pipelineRunId String?
+  status        String   @default("COMPLETED")
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  executionMs   Int      @default(0)
+  estimatedCost Float    @default(0.0)
+  createdAt     DateTime @default(now())
 
   outputs AgentOutput[]
 }
 
 model AgentOutput {
-  id            String       @id @default(uuid())
-  agentRunId    String
-  agentRun      AgentRun     @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
-  requirementId String?
-  requirement   Requirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
-  payloadJson   String
-  createdAt     DateTime     @default(now())
+  id          String     @id @default(uuid())
+  agentRunId  String
+  agentRun    AgentRun   @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+  violationId String?
+  violation   Violation? @relation(fields: [violationId], references: [id], onDelete: SetNull)
+  payloadJson String
+  createdAt   DateTime   @default(now())
 
   validations Validation[]
 }
@@ -189,23 +297,21 @@ model Validation {
   contradictionDetected Boolean    @default(false)
   unsupportedClaims    Boolean     @default(false)
   confidenceScore      Float       @default(0.0)
-  riskLevel            String      @default("low")
-  routingDecision      String      @default("AUTO_PASS") // AUTO_PASS, HUMAN_REVIEW
+  riskLevel            String      @default("LOW")
+  routingDecision      String      @default("AUTO_ACTION") // AUTO_ACTION, HUMAN_REVIEW
   validationDetails    String?
   createdAt            DateTime    @default(now())
 }
 
 model Review {
-  id            String      @id @default(uuid())
-  requirementId String
-  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
-  reviewerId    String
-  reviewer      User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
-  action        String // APPROVED, EDITED, REJECTED, REGENERATED
-  previousAnswer String?
-  newAnswer      String?
-  reason         String?
-  createdAt      DateTime    @default(now())
+  id          String    @id @default(uuid())
+  violationId String
+  violation   Violation @relation(fields: [violationId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  action      String // APPROVED, EDITED, REJECTED, CURE_NOTICE_ISSUED, REINSPECTION_REQUESTED
+  reason      String?
+  createdAt   DateTime  @default(now())
 
   comments ReviewComment[]
 }
@@ -221,48 +327,46 @@ model ReviewComment {
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    String
-  details   String
-  timestamp DateTime @default(now())
+  id         String    @id @default(uuid())
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  details    String
+  timestamp  DateTime  @default(now())
 }
 
 model Export {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  format    String // DOCX, PDF, XLSX, JSON
-  fileUrl   String
-  fileName  String
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  format     String // DOCX, PDF, XLSX, JSON
+  fileUrl    String
+  fileName   String
+  createdAt  DateTime @default(now())
 }
 
 model PipelineRun {
-  id                String   @id @default(uuid())
-  projectId         String
-  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  rocketrideRunId   String
-  status            String   @default("RUNNING") // QUEUED, RUNNING, COMPLETED, FAILED
-  progress          Int      @default(0)
-  currentStep       String   @default("INGESTION")
-  totalRequirements Int      @default(0)
-  processedCount    Int      @default(0)
-  totalTokens       Int      @default(0)
-  estimatedCost     Float    @default(0.0)
-  executionMs       Int      @default(0)
-  errorLog          String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(uuid())
+  locationId      String
+  location        Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  rocketrideRunId String
+  status          String   @default("RUNNING") // QUEUED, RUNNING, COMPLETED, FAILED
+  progress        Int      @default(0)
+  currentStep     String   @default("MEDIA_INGESTION")
+  totalAssets     Int      @default(0)
+  processedCount  Int      @default(0)
+  totalTokens     Int      @default(0)
+  estimatedCost   Float    @default(0.0)
+  executionMs     Int      @default(0)
+  errorLog        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model UsageMetric {
   id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   metricName  String
   metricValue Float
   unit        String
@@ -271,10 +375,8 @@ model UsageMetric {
 
 model CostRecord {
   id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   agentType   String
-  provider    String   @default("RocketRide/OpenAI")
+  provider    String   @default("RocketRide/Multimodal")
   inputTokens Int
   outputTokens Int
   costUsd     Float
@@ -287,7 +389,7 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   message   String
-  type      String   @default("INFO") // INFO, WARNING, SUCCESS, ERROR
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS, ERROR, CURE_NOTICE
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }

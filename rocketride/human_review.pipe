@@ -1,0 +1,23 @@
+{
+  "name": "human_review_routing_pipeline",
+  "version": "1.0.0",
+  "description": "Human approval gate for high-risk cure notices, formal warnings, and default packages",
+  "components": [
+    {
+      "id": "review_router",
+      "provider": "rocketride.gate.human_approval",
+      "config": {
+        "mandatory_human_categories": ["CRITICAL", "HIGH", "CURE_NOTICE", "FORMAL_DEFAULT"],
+        "auto_approve_max_risk": 29
+      },
+      "input": {
+        "violation": "pipeline_input.violation",
+        "risk_category": "pipeline_input.risk_category"
+      }
+    }
+  ],
+  "output": {
+    "routing": "review_router.output.decision",
+    "notice_payload": "review_router.output.generated_notice"
+  }
+}

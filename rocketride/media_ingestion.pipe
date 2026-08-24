@@ -1,0 +1,47 @@
+{
+  "name": "franchise_media_ingestion_pipeline",
+  "version": "1.0.0",
+  "description": "Multimodal location photo validation, video frame sampling, and inspection document parser",
+  "components": [
+    {
+      "id": "photo_validator",
+      "provider": "rocketride.vision.validator",
+      "config": {
+        "formats": ["jpeg", "jpg", "png", "webp"],
+        "detect_blur": true,
+        "min_resolution": "640x480"
+      },
+      "input": {
+        "image_assets": "pipeline_input.photos"
+      }
+    },
+    {
+      "id": "video_sampler",
+      "provider": "rocketride.video.sampler",
+      "config": {
+        "sample_rate_seconds": 2.5,
+        "max_frames_per_video": 12,
+        "detect_scene_changes": true
+      },
+      "input": {
+        "video_assets": "pipeline_input.videos"
+      }
+    },
+    {
+      "id": "document_extractor",
+      "provider": "rocketride.document.ocr",
+      "config": {
+        "extract_tables": true,
+        "languages": ["en"]
+      },
+      "input": {
+        "documents": "pipeline_input.inspection_reports"
+      }
+    }
+  ],
+  "output": {
+    "validated_photos": "photo_validator.output.clean_photos",
+    "sampled_video_frames": "video_sampler.output.keyframes",
+    "extracted_doc_text": "document_extractor.output.parsed_text"
+  }
+}

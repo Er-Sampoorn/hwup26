@@ -1,229 +1,254 @@
 import { db } from '../lib/db';
 
 export async function seedDemoDatabase() {
-  console.log('🌱 Seeding BidForge AI Demo Dataset...');
+  console.log('🌱 Seeding FranchiseGuard AI Demo Dataset...');
 
   // 1. Create Organization
   const org = await db.organization.upsert({
-    where: { slug: 'acme-telecom' },
+    where: { slug: 'burgercraft-corporate' },
     update: {},
     create: {
-      name: 'Acme Telecom Systems',
-      slug: 'acme-telecom',
+      name: 'BurgerCraft National Franchises Inc.',
+      slug: 'burgercraft-corporate',
     },
   });
 
   // 2. Create Users
-  const reviewerUser = await db.user.upsert({
-    where: { email: 'john.doe@acmetelecom.com' },
+  const opsUser = await db.user.upsert({
+    where: { email: 'ops.manager@burgercraft.com' },
     update: {},
     create: {
-      email: 'john.doe@acmetelecom.com',
-      name: 'John Doe (Lead Reviewer)',
+      email: 'ops.manager@burgercraft.com',
+      name: 'Sarah Jenkins (Franchise Ops Manager)',
       passwordHash: 'demo123hash',
-      role: 'REVIEWER',
+      role: 'OPS_MANAGER',
       organizationId: org.id,
     },
   });
 
-  // 3. Create Supporting Evidence Documents & Chunks (20+ Documents)
-  const evidenceDocSpecs = [
-    { title: 'SOC 2 Type II Security Audit Report (2025)', category: 'Security', section: 'Encryption & Controls', content: 'Acme Telecom enforces AES-256 encryption for all data at rest across cloud databases, S3 storage buckets, and backups. Data in transit is protected using TLS 1.3/1.2 protocols. Multi-factor authentication (MFA) is strictly required for all administrative access. Penetration testing is conducted bi-annually by NCC Group.', page: 12 },
-    { title: 'ISO 27001:2022 Certification Statement', category: 'Security', section: 'Information Security System', content: 'Acme Telecom holds valid ISO/IEC 27001:2022 certification covering all cloud infrastructure, software development lifecycles, and customer operations. Certificate Number: IS 694028, renewed through December 2027.', page: 4 },
-    { title: 'Master Service Level Agreement (SLA)', category: 'SLAs & Support', section: 'Uptime & Credits', content: 'Acme Telecom guarantees 99.95% uptime availability calculated monthly. Service credits of 10% monthly fees are issued for uptime between 99.0%-99.9%, and 25% for uptime below 99.0%. Critical P1 incident response time is 15 minutes with 24/7/365 dedicated NOC support.', page: 8 },
-    { title: 'Global Data Processing Agreement (DPA)', category: 'Legal & Compliance', section: 'GDPR & Privacy', content: 'Full compliance with EU GDPR, UK GDPR, and CCPA. Data subjects retain rights to data portability and complete deletion within 30 days. Data residency guarantees EU-only hosting within Frankfurt and Dublin AWS data centers upon customer request.', page: 19 },
-    { title: 'Enterprise Product Architecture Guide', category: 'Technical & Architecture', section: 'Scalability & API', content: 'The system utilizes microservices architecture built on Kubernetes (EKS) with horizontal auto-scaling supporting up to 50,000 requests per second. GraphQL and RESTful APIs are provided with rate limits of 10,000 calls/min per client organization.', page: 15 },
-    { title: 'Commercial Pricing & Tiering Manual', category: 'Commercial & Pricing', section: 'Enterprise Rates', content: 'Enterprise License Fee: $120,000/year base platform including 500 seats. Additional user seats are $18/user/month billed annually. Professional services for onboarding are fixed at $25,000.', page: 3 },
-    { title: 'Disaster Recovery & Business Continuity Plan', category: 'Security', section: 'RPO / RTO', content: 'Recovery Point Objective (RPO) is < 5 minutes for database replication. Recovery Time Objective (RTO) is < 1 hour for total failover to secondary AWS region.', page: 22 },
-    { title: 'Vulnerability Management & Patching Policy', category: 'Security', section: 'Patch Lifecycles', content: 'Critical security patches are deployed within 24 hours of release. High severity patches within 7 days. Automated static code analysis (SAST) and dependency vulnerability scans run on every pull request.', page: 9 },
-    { title: 'Third-Party Vendor Risk Management Policy', category: 'Legal & Compliance', section: 'Subprocessor Audit', content: 'All third-party subprocessors undergo rigorous annual security assessments, background checks, and SOC 2 verification before approval.', page: 6 },
-    { title: 'Employee Security Awareness & Training Manual', category: 'Security', section: 'Personnel Security', content: 'Mandatory security awareness training is required upon hire and annually thereafter. Monthly simulated phishing campaigns are conducted across all employees.', page: 2 },
-    { title: 'Identity & Access Management (IAM) Spec', category: 'Technical & Architecture', section: 'SSO & SAML', content: 'Native integration with SAML 2.0, Okta, Azure AD / Microsoft Entra ID, PingIdentity, and Google Workspace SSO. Just-In-Time (JIT) user provisioning and SCIM 2.0 user lifecycle syncing supported.', page: 11 },
-    { title: 'Data Retention & Destruction Policy', category: 'Legal & Compliance', section: 'Lifecycle Management', content: 'Customer data is retained for the duration of contract active term plus 30 days grace period. DoD 5220.22-M sanitization standards applied upon hard deletion.', page: 14 },
-    { title: 'Incident Response & Breach Notification Plan', category: 'Security', section: 'Breach Escalation', content: 'In the event of a confirmed security incident or data breach, affected customers will be notified within 24 hours in compliance with legal and regulatory mandates.', page: 7 },
-    { title: 'Network Security & Firewall Architecture', category: 'Technical & Architecture', section: 'Zero Trust', content: 'Zero Trust Network Architecture (ZTNA) enforced across all infrastructure. Cloudflare Magic Transit DDoS protection and Web Application Firewall (WAF) deployed globally.', page: 18 },
-    { title: 'Audit Trail & Logging Specifications', category: 'Security', section: 'Immutable Logs', content: 'All system transactions, administrative changes, and user authentication events generate immutable audit logs exported to Datadog and AWS CloudTrail with 7-year retention.', page: 10 },
-    { title: 'Customer Onboarding & Migration Framework', category: 'General Capabilities', section: 'Implementation', content: 'Standard customer deployment timeline is 4 to 6 weeks guided by a dedicated Technical Account Manager (TAM) and Solutions Architect.', page: 5 },
-    { title: 'AI Ethics & Model Safety Guidelines', category: 'Technical & Architecture', section: 'Model Training', content: 'Customer enterprise data is strictly isolated and NEVER used to train shared public foundation models or third-party AI systems.', page: 8 },
-    { title: 'Environmental, Social & Governance (ESG) Report', category: 'General Capabilities', section: 'Sustainability', content: 'Acme Telecom targets Net-Zero carbon operations by 2030, utilizing 100% renewable energy for primary data center workloads.', page: 3 },
-    { title: 'Physical Security Standards & Access Controls', category: 'Security', section: 'Data Center Security', content: 'Data centers are hosted in Tier III+ facilities with biometric access control, 24/7 armed guards, and video surveillance with 90-day retention.', page: 13 },
-    { title: 'Multi-Tenant Isolation & Sandbox Architecture', category: 'Technical & Architecture', section: 'Tenant Separation', content: 'Logical multi-tenancy enforced at the database level with row-level tenant IDs, separate KMS encryption keys, and isolated sandbox environments for testing.', page: 16 },
+  // 3. Create Brand Standards Catalog
+  const brandStandardsSpecs = [
+    { code: 'CLEAN-001', title: 'Store Entrance & Window Cleanliness', category: 'Cleanliness', description: 'Storefront glass, entrance doors, and sidewalk must be free of debris, smudges, and litter.', severity: 'MEDIUM', hours: 48 },
+    { code: 'FOOD-002', title: 'Food Prep Temperature Control & Labeling', category: 'Food Safety', description: 'Refrigerated prep units must hold ingredients at <= 41°F with clear expiration date labels.', severity: 'CRITICAL', hours: 12 },
+    { code: 'BRAND-014', title: 'Exterior Logo Signage & Illumination', category: 'Branding', description: 'Primary exterior brand logo must be fully illuminated with zero damaged acrylic panels.', severity: 'HIGH', hours: 72 },
+    { code: 'UNIFORM-003', title: 'Staff Uniform & Hygiene Compliance', category: 'Uniform', description: 'All floor staff must wear approved branded aprons, non-slip shoes, and hair restraints.', severity: 'LOW', hours: 24 },
+    { code: 'SAFETY-005', title: 'Emergency Exit Corridor Clearance', category: 'Safety', description: 'Emergency exit doors and corridors must remain 100% unobstructed by boxes or inventory.', severity: 'CRITICAL', hours: 6 },
+    { code: 'EQUIP-008', title: 'Deep Fryer & Exhaust Hood Maintenance', category: 'Equipment', description: 'Exhaust hood filters must undergo bi-weekly degreasing with fire suppression tags up to date.', severity: 'HIGH', hours: 24 },
   ];
 
-  for (const docSpec of evidenceDocSpecs) {
-    const doc = await db.evidenceDocument.create({
+  const createdStandards = [];
+  for (const spec of brandStandardsSpecs) {
+    const std = await db.standard.create({
       data: {
-        title: docSpec.title,
-        fileName: docSpec.title.toLowerCase().replace(/[^\w]/g, '_') + '.pdf',
-        fileType: 'PDF',
-        category: docSpec.category,
+        code: spec.code,
+        title: spec.title,
+        category: spec.category,
+        description: spec.description,
+        severity: spec.severity,
+        remediationHours: spec.hours,
         organizationId: org.id,
       },
     });
+    createdStandards.push(std);
+  }
 
-    await db.evidenceChunk.create({
+  // 4. Create Franchise Owners (10 Owners)
+  const regions = ['North East', 'South East', 'Midwest', 'Central', 'West Coast'];
+  const owners = [];
+  for (let i = 1; i <= 10; i++) {
+    const owner = await db.franchiseOwner.create({
       data: {
-        evidenceDocumentId: doc.id,
-        content: docSpec.content,
-        section: docSpec.section,
-        pageNumber: docSpec.page,
-        chunkIndex: 0,
+        name: `Franchise Owner Group #${i}`,
+        email: `owner${i}@franchisegroup.com`,
+        phone: `+1 (555) 019-${1000 + i}`,
+        companyName: `Apex Retail Ops #${i} LLC`,
+        organizationId: org.id,
       },
     });
+    owners.push(owner);
   }
 
-  // 4. Create Project
-  const project = await db.project.create({
-    data: {
-      name: 'Acme Telecom Enterprise RFP 2026',
-      customer: 'Global Banking Group Inc.',
-      deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-      rfpType: 'RFP',
-      description: 'Comprehensive procurement questionnaire for enterprise core banking infrastructure migration and security compliance.',
-      status: 'IN_REVIEW',
-      organizationId: org.id,
-    },
-  });
-
-  // 5. Create RFP Master Container & Document
-  const rfp = await db.rfp.create({
-    data: {
-      title: 'Global Banking Group - Cloud Core RFP.pdf',
-      projectId: project.id,
-    },
-  });
-
-  await db.rfpDocument.create({
-    data: {
-      fileName: 'Global_Banking_Group_Cloud_Core_RFP_v2.pdf',
-      fileType: 'PDF',
-      fileSize: 4850120,
-      filePath: '/uploads/Global_Banking_Group_Cloud_Core_RFP_v2.pdf',
-      parsedText: 'Global Banking Group Enterprise Core Infrastructure RFP Specification document...',
-      rfpId: rfp.id,
-    },
-  });
-
-  // 6. Generate 100+ Realistic Requirements
-  const categories = ['Security', 'SLAs & Support', 'Technical & Architecture', 'Commercial & Pricing', 'Legal & Compliance', 'General Capabilities'];
-
-  const requirementTemplates = [
-    { cat: 'Security', q: 'Describe encryption at rest and in transit protocols across all system layers.', mand: true },
-    { cat: 'Security', q: 'Does your company hold current ISO 27001:2022 or SOC 2 Type II certifications? Provide certificate numbers.', mand: true },
-    { cat: 'Security', q: 'Describe your vulnerability management, SAST scanning, and emergency patching lifecycles.', mand: false },
-    { cat: 'Security', q: 'State your Recovery Point Objective (RPO) and Recovery Time Objective (RTO) for disaster recovery failover.', mand: true },
-    { cat: 'Security', q: 'What is your security incident and data breach customer notification SLA?', mand: true },
-    { cat: 'SLAs & Support', q: 'Provide your guaranteed monthly uptime SLA percentage and service credit refund structure.', mand: true },
-    { cat: 'SLAs & Support', q: 'Describe support ticket response times for Critical (P1), High (P2), and Normal (P3) incidents.', mand: true },
-    { cat: 'Legal & Compliance', q: 'Describe compliance with EU GDPR, CCPA, and provide details on EU data residency options.', mand: true },
-    { cat: 'Legal & Compliance', q: 'Explain your customer data retention, grace period, and sanitization/destruction policies.', mand: false },
-    { cat: 'Technical & Architecture', q: 'Detail your Identity and Access Management (IAM) capabilities including SAML 2.0, Okta, and SCIM provisioning.', mand: true },
-    { cat: 'Technical & Architecture', q: 'Explain how tenant data isolation and separate encryption KMS keys are maintained in multi-tenant environments.', mand: true },
-    { cat: 'Technical & Architecture', q: 'Describe API rate limits, supported GraphQL/REST endpoints, and maximum concurrent request throughput.', mand: false },
-    { cat: 'Commercial & Pricing', q: 'Provide baseline annual platform license costs, per-user seat pricing, and implementation fees.', mand: true },
-    { cat: 'General Capabilities', q: 'Describe standard implementation onboarding duration and dedicated customer success resources provided.', mand: false },
-    { cat: 'General Capabilities', q: 'Does your system support AI model training privacy guarantees preventing customer data leakage?', mand: true },
-    // UNSUPPORTED / MISSING EVIDENCE DEMO REQUIREMENTS
-    { cat: 'Technical & Architecture', q: 'Does your system support native on-premises deployment on IBM z/OS Mainframe hardware via COBOL connectors?', mand: false },
-    { cat: 'Commercial & Pricing', q: 'Will supplier commit to fixed 10-year capped price lock with zero inflation indexation clause?', mand: true },
+  // 5. Create 50 Locations across Regions
+  const cities = [
+    { name: 'Boston', state: 'MA', region: 'North East' },
+    { name: 'New York', state: 'NY', region: 'North East' },
+    { name: 'Atlanta', state: 'GA', region: 'South East' },
+    { name: 'Miami', state: 'FL', region: 'South East' },
+    { name: 'Chicago', state: 'IL', region: 'Midwest' },
+    { name: 'Detroit', state: 'MI', region: 'Midwest' },
+    { name: 'Dallas', state: 'TX', region: 'Central' },
+    { name: 'Denver', state: 'CO', region: 'Central' },
+    { name: 'Los Angeles', state: 'CA', region: 'West Coast' },
+    { name: 'Seattle', state: 'WA', region: 'West Coast' },
   ];
 
-  let reqIndex = 1;
-  const createdReqs = [];
+  const createdLocations = [];
+  for (let idx = 1; idx <= 50; idx++) {
+    const cityObj = cities[(idx - 1) % cities.length];
+    const locCode = `LOC-${String(idx).padStart(3, '0')}`;
 
-  // Generate 105 total requirements by repeating/expanding templates
-  for (let i = 0; i < 7; i++) {
-    for (const t of requirementTemplates) {
-      const codeStr = `REQ-${String(reqIndex).padStart(3, '0')}`;
-      const isMissingEvidenceDemo = t.q.includes('z/OS Mainframe') || t.q.includes('10-year capped price lock');
+    // Highlight Location #042 as the Hero Critical Recurrent Location
+    const isHeroLocation = idx === 42;
+    const isHighRiskDemo = idx % 7 === 0;
 
-      const isHighConfidence = !isMissingEvidenceDemo && reqIndex % 3 !== 0;
-      const isMandatoryReview = t.mand || t.cat === 'Commercial & Pricing' || t.cat === 'Legal & Compliance';
+    let riskScore = isHeroLocation ? 82.0 : isHighRiskDemo ? 64.0 : 18.0 + (idx % 15);
+    let riskCategory = riskScore >= 80 ? 'CRITICAL' : riskScore >= 60 ? 'HIGH' : riskScore >= 30 ? 'MEDIUM' : 'LOW';
+    let complianceScore = isHeroLocation ? 62.0 : isHighRiskDemo ? 75.0 : 94.0;
 
-      let status = 'verified';
-      let confidence = isHighConfidence ? 92.0 + (reqIndex % 7) : 74.0;
-      let risk = isMandatoryReview ? 'high' : 'low';
-      let answer = '';
+    const loc = await db.location.create({
+      data: {
+        code: locCode,
+        name: `BurgerCraft #${idx} (${cityObj.name})`,
+        address: `${100 + idx * 12} Main Street, Suite ${idx}`,
+        city: cityObj.name,
+        state: cityObj.state,
+        region: cityObj.region,
+        manager: `Manager ${cityObj.name} #${idx}`,
+        complianceScore,
+        riskScore,
+        riskCategory,
+        openingDate: new Date(2021, (idx % 12), 15),
+        lastInspectionAt: new Date(Date.now() - (idx % 10) * 24 * 60 * 60 * 1000),
+        nextInspectionAt: new Date(Date.now() + (isHeroLocation ? 2 : 14) * 24 * 60 * 60 * 1000),
+        organizationId: org.id,
+        ownerId: owners[idx % owners.length].id,
+      },
+    });
 
-      if (isMissingEvidenceDemo) {
-        status = 'unsupported';
-        confidence = 35.0;
-        risk = 'high';
-        answer = 'Insufficient evidence — human review required.';
-      } else if (isMandatoryReview || !isHighConfidence) {
-        status = 'needs_review';
-        answer = `Evidence verified from company knowledge base. ${t.q.slice(0, 40)}... (Mandatory reviewer sign-off required for ${t.cat}).`;
-      } else {
-        answer = `Fully compliant. Standard operational procedures and documentation confirm complete support for: ${t.q}`;
+    createdLocations.push(loc);
+  }
+
+  // 6. Create Inspections, Media Assets, Violations, & Remediation Evidence (200+ Assets)
+  for (const loc of createdLocations) {
+    const isHeroLocation = loc.code === 'LOC-042';
+
+    const inspection = await db.inspection.create({
+      data: {
+        locationId: loc.id,
+        type: 'ROUTINE',
+        status: 'COMPLETED',
+        score: loc.complianceScore,
+        completedAt: new Date(),
+      },
+    });
+
+    // Create 4 Media Assets per location (50 * 4 = 200 Assets)
+    for (let m = 1; m <= 4; m++) {
+      const asset = await db.mediaAsset.create({
+        data: {
+          locationId: loc.id,
+          inspectionId: inspection.id,
+          fileName: `${loc.code}_inspection_photo_${m}.jpg`,
+          fileType: 'IMAGE',
+          mimeType: 'image/jpeg',
+          fileUrl: `/uploads/inspection_assets/${loc.code}_photo_${m}.jpg`,
+          capturedAt: new Date(Date.now() - m * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      await db.mediaAnalysis.create({
+        data: {
+          mediaAssetId: asset.id,
+          summaryText: `Multimodal visual audit of ${loc.name} photo #${m}. Detected operational state and surface condition.`,
+          detectedJson: JSON.stringify({ objects: ['storefront', 'signage', 'counter'], confidence: 0.94 }),
+        },
+      });
+
+      // Attach Violations for Hero Location & High Risk Locations
+      if (isHeroLocation || (loc.riskScore >= 60 && m <= 2)) {
+        const std = createdStandards[(m - 1) % createdStandards.length];
+        const isRecurring = isHeroLocation && std.code === 'CLEAN-001';
+
+        const viol = await db.violation.create({
+          data: {
+            violationCode: `VIOL-${Math.floor(1000 + Math.random() * 9000)}`,
+            locationId: loc.id,
+            inspectionId: inspection.id,
+            standardId: std.id,
+            description: `Observed violation of ${std.title}: debris and smudges visible on primary store glass panel.`,
+            severity: isRecurring ? 'CRITICAL' : std.severity,
+            status: isRecurring ? 'NEEDS_REVIEW' : 'ACTION_REQUIRED',
+            isRecurring,
+            recurrenceCount: isRecurring ? 4 : 1,
+            confidence: 94.0,
+            aiExplanation: isRecurring
+              ? 'RECURRENT FAILURE: Location LOC-042 failed Standard CLEAN-001 in 4 consecutive audits. Formal Cure Notice recommended.'
+              : `Visual analysis confirmed compliance gap against ${std.title}.`,
+          },
+        });
+
+        await db.violationEvidence.create({
+          data: {
+            violationId: viol.id,
+            mediaAssetId: asset.id,
+            snippetText: `Debris detected on storefront panel in asset ${asset.fileName}`,
+            confidence: 0.94,
+          },
+        });
+
+        // Create Corrective Action
+        await db.correctiveAction.create({
+          data: {
+            actionCode: `ACT-${Math.floor(100 + Math.random() * 900)}`,
+            violationId: viol.id,
+            locationId: loc.id,
+            title: `Remediate ${std.title}`,
+            description: `Clean and restore ${std.title} according to brand specifications. Upload photo proof.`,
+            dueAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+            status: isRecurring ? 'PENDING' : 'IN_PROGRESS',
+          },
+        });
       }
-
-      const req = await db.requirement.create({
-        data: {
-          reqCode: codeStr,
-          projectId: project.id,
-          question: i > 0 ? `${t.q} (Ref variation ${i + 1})` : t.q,
-          mandatory: t.mand,
-          deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-          answer,
-          confidence,
-          risk,
-          status,
-          reasoningSummary: isMissingEvidenceDemo
-            ? 'No matching evidence found in company knowledge base. Flagged for human review.'
-            : `Evidence matched from ${t.cat} documentation. Evaluated by specialist agent.`,
-        },
-      });
-
-      createdReqs.push(req);
-      reqIndex++;
     }
-  }
 
-  // 7. Link Evidence to Requirements & Create Audit Logs
-  const chunks = await db.evidenceChunk.findMany({ take: 10 });
-  for (let idx = 0; idx < Math.min(30, createdReqs.length); idx++) {
-    if (createdReqs[idx].status !== 'unsupported') {
-      await db.requirementEvidence.create({
+    // 7. Create Customer Complaint & Review Feeds (100+ Reviews across locations)
+    for (let c = 1; c <= 2; c++) {
+      await db.customerFeedback.create({
         data: {
-          requirementId: createdReqs[idx].id,
-          chunkId: chunks[idx % chunks.length].id,
-          relevanceScore: 0.92,
+          locationId: loc.id,
+          source: c === 1 ? 'Google Reviews' : 'Yelp',
+          rating: isHeroLocation ? 1.5 : 4.2,
+          reviewText: isHeroLocation
+            ? 'Dirty storefront glass and sticky entrance floor. Third time I noticed this month!'
+            : 'Great burgers and clean store environment.',
+          sentiment: isHeroLocation ? 'NEGATIVE' : 'POSITIVE',
+          category: 'Cleanliness',
         },
       });
     }
   }
 
-  // 8. Create Sample Pipeline Run Execution Record
+  // 8. Create Sample Pipeline Run Record
+  const heroLoc = createdLocations.find((l) => l.code === 'LOC-042') || createdLocations[0];
   await db.pipelineRun.create({
     data: {
-      projectId: project.id,
-      rocketrideRunId: `rr_run_demo_${Date.now()}`,
+      locationId: heroLoc.id,
+      rocketrideRunId: `rr_audit_demo_${Date.now()}`,
       status: 'COMPLETED',
       progress: 100,
-      currentStep: 'PROPOSAL_FINALIZATION',
-      totalRequirements: createdReqs.length,
-      processedCount: createdReqs.length,
-      totalTokens: 42890,
-      estimatedCost: 0.1245,
-      executionMs: 14200,
+      currentStep: 'AUDIT_COMPLETED',
+      totalAssets: 4,
+      processedCount: 4,
+      totalTokens: 38400,
+      estimatedCost: 0.1152,
+      executionMs: 12400,
     },
   });
 
-  // 9. Create Audit Trail Logs
+  // 9. Audit Log
   await db.auditLog.create({
     data: {
-      projectId: project.id,
-      userId: reviewerUser.id,
+      locationId: heroLoc.id,
+      userId: opsUser.id,
       action: 'DEMO_DATASET_INITIALIZED',
-      details: `Initialized Acme Telecom Enterprise RFP dataset with ${createdReqs.length} requirements and 20 evidence documents.`,
+      details: `Initialized FranchiseGuard AI demo dataset: 50 locations, 200+ media assets, 100+ customer complaint feeds. Hero critical location LOC-042 flagged with 4-time recurring violation.`,
     },
   });
 
-  console.log(`✅ Demo Dataset Successfully Seeded! Project ID: ${project.id}`);
-  return { projectId: project.id, requirementCount: createdReqs.length };
+  console.log(`✅ FranchiseGuard AI Demo Dataset Seeded! Total Locations: ${createdLocations.length}`);
+  return { locationCount: createdLocations.length, heroLocationId: heroLoc.id };
 }
 
-// Execute if called directly from CLI
 if (require.main === module) {
   seedDemoDatabase()
     .then(() => process.exit(0))

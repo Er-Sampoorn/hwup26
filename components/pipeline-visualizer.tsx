@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Cpu, CheckCircle2, AlertTriangle, Clock, ArrowRight, Layers, FileText, Search, ShieldCheck, FileSpreadsheet, Activity } from 'lucide-react';
+import { Cpu, CheckCircle2, AlertTriangle, Clock, ArrowRight, Layers, FileText, Search, ShieldCheck, Activity, Eye, AlertOctagon } from 'lucide-react';
 
 interface PipelineVisualizerProps {
-  status: string; // QUEUED, RUNNING, COMPLETED, FAILED
+  status: string;
   progress: number;
   currentStep: string;
-  totalRequirements: number;
+  totalAssets: number;
   processedCount: number;
   totalTokens: number;
   estimatedCost: number;
@@ -20,7 +20,7 @@ export default function PipelineVisualizer({
   status,
   progress,
   currentStep,
-  totalRequirements,
+  totalAssets,
   processedCount,
   totalTokens,
   estimatedCost,
@@ -29,12 +29,12 @@ export default function PipelineVisualizer({
   errorLog,
 }: PipelineVisualizerProps) {
   const steps = [
-    { id: 'INGESTION', label: 'Document Ingestion', icon: FileText, pipe: 'ingestion.pipe' },
-    { id: 'REQUIREMENT_EXTRACTION', label: 'Requirement Extraction', icon: Layers, pipe: 'requirements.pipe' },
-    { id: 'EVIDENCE_SEARCH', label: 'Evidence Matching', icon: Search, pipe: 'evidence.pipe' },
-    { id: 'AGENT_ORCHESTRATION', label: 'Specialist Agents Router', icon: Cpu, pipe: 'agents.pipe' },
-    { id: 'VALIDATION', label: 'Validation & Risk Gate', icon: ShieldCheck, pipe: 'validation.pipe' },
-    { id: 'PROPOSAL_FINALIZATION', label: 'Proposal Package Finalization', icon: FileSpreadsheet, pipe: 'finalization.pipe' },
+    { id: 'MEDIA_INGESTION', label: 'Multimodal Media Ingestion', icon: Eye, pipe: 'media_ingestion.pipe' },
+    { id: 'MULTIMODAL_MEDIA_ANALYSIS', label: 'Vision & Text Analysis', icon: Search, pipe: 'inspection_pipeline.pipe' },
+    { id: 'VIOLATION_DETECTION', label: 'Standards Matching', icon: ShieldCheck, pipe: 'violation_detection.pipe' },
+    { id: 'RISK_SCORING_AND_RECURRENCE', label: 'Risk & Recurrence Engine', icon: AlertOctagon, pipe: 'risk_scoring.pipe' },
+    { id: 'HUMAN_REVIEW_GATE', label: 'Human Review & Cure Notice', icon: Cpu, pipe: 'human_review.pipe' },
+    { id: 'AUDIT_COMPLETED', label: 'Audit Finalization', icon: CheckCircle2, pipe: 'full_audit_pipeline.pipe' },
   ];
 
   const getCurrentStepIndex = () => {
@@ -46,29 +46,29 @@ export default function PipelineVisualizer({
   const activeIdx = getCurrentStepIndex();
 
   return (
-    <div className="glass-panel rounded-2xl p-6 border border-border bg-slate-900/80 shadow-2xl">
+    <div className="glass-panel rounded-2xl p-6 border border-slate-800 bg-slate-900/90 shadow-2xl">
       {/* Header Info */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-5 border-b border-border/80 gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-5 border-b border-slate-800 gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
               <Cpu className="h-5 w-5 animate-pulse" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                RocketRide Orchestration Engine
+                RocketRide Multimodal AI Engine
                 <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
                   {rocketrideRunId}
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Executing master pipeline: <code className="text-cyan-400 font-mono">rocketride/full_rfp_pipeline.pipe</code>
+                Master Pipeline: <code className="text-cyan-400 font-mono">rocketride/full_audit_pipeline.pipe</code>
               </p>
             </div>
           </div>
         </div>
 
-        {/* Execution Metrics Pill */}
+        {/* Execution Metrics */}
         <div className="flex items-center gap-4 text-xs font-mono bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
           <div>
             <span className="text-slate-500">TOKENS: </span>
@@ -91,20 +91,20 @@ export default function PipelineVisualizer({
       <div className="mt-5">
         <div className="flex justify-between items-center text-xs mb-2">
           <span className="text-slate-400 font-medium flex items-center gap-2">
-            <Activity className="h-3.5 w-3.5 text-blue-400" />
-            Processing Progress: <strong className="text-white">{processedCount} / {totalRequirements} Requirements</strong>
+            <Activity className="h-3.5 w-3.5 text-amber-400" />
+            Processed Assets: <strong className="text-white">{processedCount} / {totalAssets} Media Files</strong>
           </span>
           <span className="font-bold font-mono text-cyan-400">{progress}%</span>
         </div>
         <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
           <div
-            className="h-full bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-400 rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
       </div>
 
-      {/* Pipeline Node Graph */}
+      {/* Node Graph */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {steps.map((step, idx) => {
           const Icon = step.icon;
@@ -116,7 +116,7 @@ export default function PipelineVisualizer({
               key={step.id}
               className={`p-3 rounded-xl border flex flex-col justify-between transition-all ${
                 isCurrent
-                  ? 'bg-blue-950/60 border-blue-500/80 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500'
+                  ? 'bg-amber-950/60 border-amber-500/80 shadow-lg shadow-amber-500/20 ring-1 ring-amber-500'
                   : isDone
                   ? 'bg-slate-900/90 border-emerald-500/40 text-slate-200'
                   : 'bg-slate-950/40 border-slate-800 text-slate-500 opacity-60'
@@ -126,7 +126,7 @@ export default function PipelineVisualizer({
                 <div
                   className={`h-7 w-7 rounded-lg flex items-center justify-center ${
                     isCurrent
-                      ? 'bg-blue-500 text-white animate-bounce'
+                      ? 'bg-amber-500 text-white animate-bounce'
                       : isDone
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                       : 'bg-slate-800 text-slate-500'
@@ -134,7 +134,7 @@ export default function PipelineVisualizer({
                 >
                   {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-3.5 w-3.5" />}
                 </div>
-                <span className="text-[10px] font-mono text-slate-500">Step {idx + 1}</span>
+                <span className="text-[10px] font-mono text-slate-500">Node {idx + 1}</span>
               </div>
 
               <div className="mt-3">

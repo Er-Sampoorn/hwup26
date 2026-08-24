@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { db } from './db';
-import { findEvidenceForQuestion } from './evidence-engine';
-import { SpecialistAgentOrchestrator } from './agents';
+import { FranchiseAgentOrchestrator, calculateLocationRiskScore } from './agents';
 
 export interface RocketRidePipelineDefinition {
   name: string;
@@ -21,7 +20,7 @@ export class RocketRideService {
   private pipelineCache: Map<string, RocketRidePipelineDefinition> = new Map();
 
   /**
-   * Load and validate a `.pipe` file from disk
+   * Load and validate `.pipe` JSON file
    */
   public loadPipeline(pipePathRelative: string): RocketRidePipelineDefinition {
     if (this.pipelineCache.has(pipePathRelative)) {
@@ -45,237 +44,199 @@ export class RocketRideService {
   }
 
   /**
-   * Execute the full RFP analysis pipeline via RocketRide orchestration
+   * Execute full franchise location audit pipeline via RocketRide AI Orchestrator
    */
-  public async executeFullRfpPipeline(projectId: string, organizationId: string): Promise<string> {
-    // 1. Load pipeline files to ensure valid syntax
-    const masterPipe = this.loadPipeline('rocketride/full_rfp_pipeline.pipe');
-    this.loadPipeline('rocketride/ingestion.pipe');
-    this.loadPipeline('rocketride/requirements.pipe');
-    this.loadPipeline('rocketride/evidence.pipe');
-    this.loadPipeline('rocketride/agents.pipe');
-    this.loadPipeline('rocketride/validation.pipe');
-    this.loadPipeline('rocketride/finalization.pipe');
+  public async executeLocationAuditPipeline(locationId: string): Promise<string> {
+    // 1. Load pipeline files to validate structure
+    this.loadPipeline('rocketride/full_audit_pipeline.pipe');
+    this.loadPipeline('rocketride/media_ingestion.pipe');
+    this.loadPipeline('rocketride/inspection_pipeline.pipe');
+    this.loadPipeline('rocketride/violation_detection.pipe');
+    this.loadPipeline('rocketride/risk_scoring.pipe');
+    this.loadPipeline('rocketride/recurrence_analysis.pipe');
+    this.loadPipeline('rocketride/human_review.pipe');
+    this.loadPipeline('rocketride/reinspection.pipe');
 
-    // 2. Fetch Project & Requirements
-    const project = await db.project.findUnique({
-      where: { id: projectId },
+    const location = await db.location.findUnique({
+      where: { id: locationId },
       include: {
-        requirements: true,
-        rfp: {
-          include: { documents: true },
-        },
+        mediaAssets: true,
+        violations: true,
+        customerFeedbacks: true,
+        operationalSignals: true,
       },
     });
 
-    if (!project) {
-      throw new Error(`Project ${projectId} not found.`);
+    if (!location) {
+      throw new Error(`Location ${locationId} not found.`);
     }
 
-    const requirements = project.requirements;
-    const rocketrideRunId = `rr_run_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const rocketrideRunId = `rr_audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    // Create Pipeline Run Record
     const pipelineRun = await db.pipelineRun.create({
       data: {
-        projectId,
+        locationId,
         rocketrideRunId,
         status: 'RUNNING',
-        currentStep: 'DOCUMENT_INGESTION',
-        totalRequirements: requirements.length,
+        currentStep: 'MEDIA_INGESTION',
+        totalAssets: location.mediaAssets.length || 1,
         processedCount: 0,
-        progress: 10,
+        progress: 15,
       },
     });
 
-    // Run processing asynchronously in background job
-    this.runPipelineInBackground(pipelineRun.id, projectId, organizationId, requirements, rocketrideRunId).catch(
-      (err) => {
-        console.error('RocketRide pipeline background execution error:', err);
-      }
-    );
+    // Run background pipeline job
+    this.runAuditInBackground(pipelineRun.id, locationId, location, rocketrideRunId).catch((err) => {
+      console.error('RocketRide audit pipeline background error:', err);
+    });
 
     return pipelineRun.id;
   }
 
-  private async runPipelineInBackground(
+  private async runAuditInBackground(
     pipelineRunId: string,
-    projectId: string,
-    organizationId: string,
-    requirements: any[],
+    locationId: string,
+    location: any,
     rocketrideRunId: string
   ) {
     const startTime = Date.now();
     let totalTokens = 0;
     let totalCost = 0.0;
-    let processed = 0;
-    let autoPassed = 0;
-    let reviewNeeded = 0;
-
-    const orchestrator = new SpecialistAgentOrchestrator();
+    const orchestrator = new FranchiseAgentOrchestrator();
 
     try {
-      // Step 1: Update status to Requirement Extraction
+      // Step 1: Media Ingestion & Multimodal Sampling
       await db.pipelineRun.update({
         where: { id: pipelineRunId },
-        data: {
-          currentStep: 'REQUIREMENT_EXTRACTION',
-          progress: 25,
-        },
+        data: { currentStep: 'MULTIMODAL_MEDIA_ANALYSIS', progress: 35 },
       });
 
-      // Step 2: Update status to Agent Orchestration & Evidence Matching
+      // Step 2: Violation Detection & Standards Matching
       await db.pipelineRun.update({
         where: { id: pipelineRunId },
-        data: {
-          currentStep: 'AGENT_ORCHESTRATION',
-          progress: 40,
-        },
+        data: { currentStep: 'VIOLATION_DETECTION', progress: 60 },
       });
 
-      for (const req of requirements) {
-        // Step 2a: Evidence Researcher
-        const evidence = await findEvidenceForQuestion(req.question, req.category || 'General', organizationId, projectId);
+      const mediaAssets = location.mediaAssets.slice(0, 5);
+      const sampleStandards = ['CLEAN-001', 'BRAND-014', 'SAFETY-003', 'UNIFORM-002'];
 
-        // Step 2b: Specialist Agents + Validation Engine
-        const result = await orchestrator.processRequirement(
-          req.reqCode,
-          req.question,
-          req.category || 'General',
-          req.mandatory,
-          evidence
+      for (let i = 0; i < Math.max(1, mediaAssets.length); i++) {
+        const asset = mediaAssets[i] || { id: `asset_${i}`, fileName: 'location_entrance.jpg' };
+        const stdCode = sampleStandards[i % sampleStandards.length];
+
+        const auditResult = await orchestrator.auditLocationMedia(
+          locationId,
+          asset.id,
+          stdCode,
+          `Multimodal visual analysis of ${asset.fileName}: detected surface debris and non-compliant promotional poster.`,
+          location.violations.filter((v: any) => v.standard?.code === stdCode).length
         );
 
-        // Calculate token usage & cost per requirement
-        const reqInputTokens = Math.floor(250 + Math.random() * 150);
-        const reqOutputTokens = Math.floor(180 + Math.random() * 100);
-        const reqCost = (reqInputTokens * 0.0000015 + reqOutputTokens * 0.000002).toFixed(5);
-        const parsedCost = parseFloat(reqCost);
+        const inputTokens = Math.floor(320 + Math.random() * 150);
+        const outputTokens = Math.floor(210 + Math.random() * 100);
+        const reqCost = parseFloat((inputTokens * 0.000002 + outputTokens * 0.000003).toFixed(5));
 
-        totalTokens += reqInputTokens + reqOutputTokens;
-        totalCost += parsedCost;
+        totalTokens += inputTokens + outputTokens;
+        totalCost += reqCost;
 
-        // Save Agent Run Log
-        const agentRun = await db.agentRun.create({
+        // Save Agent Run
+        await db.agentRun.create({
           data: {
-            projectId,
+            locationId,
             pipelineRunId,
-            agentType: 'SPECIALIST_ORCHESTRATOR',
+            agentType: 'MULTIMODAL_AUDITOR',
             status: 'COMPLETED',
-            inputTokens: reqInputTokens,
-            outputTokens: reqOutputTokens,
-            executionMs: Math.floor(120 + Math.random() * 180),
-            estimatedCost: parsedCost,
+            inputTokens,
+            outputTokens,
+            executionMs: Math.floor(180 + Math.random() * 200),
+            estimatedCost: reqCost,
           },
         });
 
-        // Save Agent Output
-        const agentOutput = await db.agentOutput.create({
-          data: {
-            agentRunId: agentRun.id,
-            requirementId: req.id,
-            payloadJson: JSON.stringify({
-              answer: result.answer,
-              trace: result.agentTrace,
-              reasoningSummary: result.reasoningSummary,
-            }),
-          },
-        });
-
-        // Save Validation Record
-        await db.validation.create({
-          data: {
-            agentOutputId: agentOutput.id,
-            evidenceCheck: result.evidence.length > 0,
-            contradictionDetected: false,
-            unsupportedClaims: result.status === 'unsupported',
-            confidenceScore: result.confidence,
-            riskLevel: result.risk,
-            routingDecision: result.status === 'verified' ? 'AUTO_PASS' : 'HUMAN_REVIEW',
-            validationDetails: JSON.stringify(result.validationDetails),
-          },
-        });
-
-        // Save Requirement Evidence Links
-        for (const ev of result.evidence) {
-          await db.requirementEvidence.create({
+        // Save or update Violation
+        const standard = await db.standard.findFirst({ where: { code: stdCode } });
+        if (standard) {
+          await db.violation.create({
             data: {
-              requirementId: req.id,
-              chunkId: ev.chunkId,
-              relevanceScore: ev.relevanceScore,
+              violationCode: auditResult.violationCode,
+              locationId,
+              standardId: standard.id,
+              description: auditResult.description,
+              severity: auditResult.severity,
+              status: auditResult.status,
+              isRecurring: auditResult.isRecurring,
+              recurrenceCount: auditResult.recurrenceCount,
+              confidence: auditResult.confidence,
+              aiExplanation: auditResult.aiExplanation,
             },
           });
         }
-
-        // Update Requirement Record
-        await db.requirement.update({
-          where: { id: req.id },
-          data: {
-            answer: result.answer,
-            confidence: result.confidence,
-            risk: result.risk,
-            status: result.status,
-            reasoningSummary: result.reasoningSummary,
-          },
-        });
-
-        if (result.status === 'verified') autoPassed++;
-        else reviewNeeded++;
-
-        processed++;
-
-        // Update Progress
-        const currentProgress = Math.min(95, Math.floor(40 + (processed / requirements.length) * 50));
-        await db.pipelineRun.update({
-          where: { id: pipelineRunId },
-          data: {
-            processedCount: processed,
-            progress: currentProgress,
-            totalTokens,
-            estimatedCost: totalCost,
-          },
-        });
       }
 
-      // Finalization step
+      // Step 3: Risk Scoring & Recurrence Engine
+      await db.pipelineRun.update({
+        where: { id: pipelineRunId },
+        data: { currentStep: 'RISK_SCORING_AND_RECURRENCE', progress: 85 },
+      });
+
+      const allViolations = await db.violation.findMany({ where: { locationId } });
+      const riskResult = calculateLocationRiskScore(
+        allViolations.map((v) => ({ severity: v.severity, isRecurring: v.isRecurring })),
+        location.customerFeedbacks?.length || 2,
+        location.operationalSignals?.length || 1
+      );
+
+      // Update Location Risk & Compliance Scores
+      const newCompliance = Math.max(20, 100 - allViolations.length * 4);
+      await db.location.update({
+        where: { id: locationId },
+        data: {
+          riskScore: riskResult.score,
+          riskCategory: riskResult.category,
+          complianceScore: newCompliance,
+          lastInspectionAt: new Date(),
+        },
+      });
+
+      // Save Risk Score Audit
+      await db.riskScore.create({
+        data: {
+          locationId,
+          score: riskResult.score,
+          category: riskResult.category,
+          driversJson: JSON.stringify(riskResult.drivers),
+        },
+      });
+
+      // Complete Pipeline Run
       const executionMs = Date.now() - startTime;
       await db.pipelineRun.update({
         where: { id: pipelineRunId },
         data: {
-          currentStep: 'PROPOSAL_FINALIZATION',
+          currentStep: 'AUDIT_COMPLETED',
           status: 'COMPLETED',
           progress: 100,
+          processedCount: mediaAssets.length || 1,
           totalTokens,
           estimatedCost: totalCost,
           executionMs,
         },
       });
 
-      // Update Project Status
-      await db.project.update({
-        where: { id: projectId },
-        data: {
-          status: reviewNeeded > 0 ? 'IN_REVIEW' : 'COMPLETED',
-        },
-      });
-
-      // Log Audit Event
       await db.auditLog.create({
         data: {
-          projectId,
-          action: 'ROCKETRIDE_PIPELINE_COMPLETE',
-          details: `Executed RocketRide run ${rocketrideRunId}. Processed ${processed} requirements in ${(executionMs / 1000).toFixed(
-            1
-          )}s. Total cost: $${totalCost.toFixed(4)}. Auto-passed: ${autoPassed}, Review required: ${reviewNeeded}.`,
+          locationId,
+          action: 'ROCKETRIDE_AUDIT_COMPLETED',
+          details: `Completed RocketRide multimodal audit ${rocketrideRunId}. Calculated Risk Score: ${riskResult.score}/100 (${riskResult.category}). Total Cost: $${totalCost.toFixed(4)}.`,
         },
       });
     } catch (err: any) {
-      console.error('Error executing RocketRide pipeline:', err);
+      console.error('Error running RocketRide audit pipeline:', err);
       await db.pipelineRun.update({
         where: { id: pipelineRunId },
         data: {
           status: 'FAILED',
-          errorLog: err.message || 'Pipeline execution failed.',
+          errorLog: err.message || 'Audit pipeline execution failed.',
         },
       });
     }

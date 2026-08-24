@@ -1,0 +1,66 @@
+{
+  "name": "full_franchise_audit_pipeline",
+  "version": "1.0.0",
+  "description": "Master end-to-end FranchiseGuard AI audit pipeline orchestrating multimodal ingestion, standards matching, violation analysis, risk scoring, recurrence detection, and human review routing",
+  "pipeline_dependencies": [
+    "rocketride/media_ingestion.pipe",
+    "rocketride/inspection_pipeline.pipe",
+    "rocketride/violation_detection.pipe",
+    "rocketride/risk_scoring.pipe",
+    "rocketride/recurrence_analysis.pipe",
+    "rocketride/human_review.pipe",
+    "rocketride/reinspection.pipe"
+  ],
+  "components": [
+    {
+      "id": "stage_1_ingest_media",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/media_ingestion.pipe"
+      },
+      "input": {
+        "photos": "pipeline_input.location_photos",
+        "videos": "pipeline_input.location_videos"
+      }
+    },
+    {
+      "id": "stage_2_detect_violations",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/violation_detection.pipe"
+      },
+      "input": {
+        "media_frames": "stage_1_ingest_media.output.validated_photos",
+        "brand_standards": "pipeline_input.brand_standards"
+      }
+    },
+    {
+      "id": "stage_3_calculate_risk",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/risk_scoring.pipe"
+      },
+      "input": {
+        "violations": "stage_2_detect_violations.output.detected_violations",
+        "customer_signals": "pipeline_input.customer_feedbacks",
+        "operational_signals": "pipeline_input.operational_signals"
+      }
+    },
+    {
+      "id": "stage_4_recurrence_and_review",
+      "provider": "rocketride.pipeline.sub_pipe",
+      "config": {
+        "pipeline_ref": "rocketride/recurrence_analysis.pipe"
+      },
+      "input": {
+        "past_violations": "pipeline_input.past_violations"
+      }
+    }
+  ],
+  "output": {
+    "location_id": "pipeline_input.location_id",
+    "detected_violations": "stage_2_detect_violations.output.detected_violations",
+    "risk_assessment": "stage_3_calculate_risk.output",
+    "recurrence_analysis": "stage_4_recurrence_and_review.output"
+  }
+}

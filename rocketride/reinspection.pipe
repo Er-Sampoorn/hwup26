@@ -1,0 +1,23 @@
+{
+  "name": "reinspection_verification_pipeline",
+  "version": "1.0.0",
+  "description": "Before-and-after evidence comparison pipeline for verifying location remediation uploads",
+  "components": [
+    {
+      "id": "remediation_comparator",
+      "provider": "rocketride.vision.comparator",
+      "config": {
+        "similarity_threshold": 0.85,
+        "require_cleanliness_pass": true
+      },
+      "input": {
+        "original_violation_photo": "pipeline_input.before_photo",
+        "proof_photo": "pipeline_input.after_photo"
+      }
+    }
+  ],
+  "output": {
+    "verification_status": "remediation_comparator.output.status",
+    "match_score": "remediation_comparator.output.match_score"
+  }
+}

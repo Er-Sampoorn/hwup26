@@ -1,23 +1,23 @@
 import fs from 'fs';
 import path from 'path';
-import { SpecialistAgentOrchestrator } from '../lib/agents';
-import { chunkText } from '../lib/ingestion';
+import { FranchiseAgentOrchestrator, calculateLocationRiskScore } from '../lib/agents';
 
-async function runAllTests() {
-  console.log('🧪 Starting BidForge AI Automated Test Suite...\n');
+async function runFranchiseGuardTests() {
+  console.log('🧪 Starting FranchiseGuard AI Automated Test Suite...\n');
   let passed = 0;
   let failed = 0;
 
   // Test 1: RocketRide .pipe JSON Schema Validation
-  console.log('Test 1: Validating RocketRide .pipe files...');
+  console.log('Test 1: Validating RocketRide .pipe files for FranchiseGuard AI...');
   const pipeFiles = [
-    'rocketride/full_rfp_pipeline.pipe',
-    'rocketride/ingestion.pipe',
-    'rocketride/requirements.pipe',
-    'rocketride/evidence.pipe',
-    'rocketride/agents.pipe',
-    'rocketride/validation.pipe',
-    'rocketride/finalization.pipe',
+    'rocketride/full_audit_pipeline.pipe',
+    'rocketride/media_ingestion.pipe',
+    'rocketride/inspection_pipeline.pipe',
+    'rocketride/violation_detection.pipe',
+    'rocketride/risk_scoring.pipe',
+    'rocketride/recurrence_analysis.pipe',
+    'rocketride/human_review.pipe',
+    'rocketride/reinspection.pipe',
   ];
 
   for (const pipeFile of pipeFiles) {
@@ -41,84 +41,52 @@ async function runAllTests() {
     }
   }
 
-  // Test 2: Semantic Chunking Engine
-  console.log('\nTest 2: Testing Document Semantic Chunking Engine...');
+  // Test 2: Multi-Factor Risk Score Calculation Formula
+  console.log('\nTest 2: Testing Multi-Factor Location Risk Formula...');
   try {
-    const sampleDocText = `SECTION 1: SECURITY CONTROLS\nAcme Telecom enforces AES-256 encryption at rest across all cloud databases.\nData in transit is protected using TLS 1.3 protocols.\n\nSECTION 2: COMPLIANCE\nSOC 2 Type II audit report available under NDA. ISO 27001 certified.`;
-    const chunks = chunkText(sampleDocText, 200, 50);
+    const mockViolations = [
+      { severity: 'CRITICAL', isRecurring: true },
+      { severity: 'HIGH', isRecurring: true },
+      { severity: 'MEDIUM', isRecurring: false },
+    ];
+    const riskResult = calculateLocationRiskScore(mockViolations, 3, 2);
 
-    if (chunks.length > 0 && chunks[0].section.includes('SECURITY')) {
-      console.log(`  ✓ Chunking engine produced ${chunks.length} chunks with section detection: "${chunks[0].section}"`);
+    if (riskResult.score >= 80 && riskResult.category === 'CRITICAL') {
+      console.log(`  ✓ Multi-Factor Risk Formula passed: Score ${riskResult.score}/100, Category: ${riskResult.category}, Drivers: ${riskResult.drivers.length}`);
       passed++;
     } else {
-      throw new Error('Chunking failed section detection');
+      throw new Error(`Risk formula miscalculated score: ${riskResult.score}`);
     }
   } catch (err: any) {
-    console.error(`❌ [FAIL] Chunking test: ${err.message}`);
+    console.error(`❌ [FAIL] Risk formula test: ${err.message}`);
     failed++;
   }
 
-  // Test 3: Specialist Agent & Strict No-Evidence Rule
-  console.log('\nTest 3: Testing Specialist Agent & Strict NO EVIDENCE Rule...');
+  // Test 3: Specialist Agent & Recurrence Detection Engine
+  console.log('\nTest 3: Testing Specialist Agent & Recurrence Detection Engine...');
   try {
-    const orchestrator = new SpecialistAgentOrchestrator();
+    const orchestrator = new FranchiseAgentOrchestrator();
 
-    // Scenario A: Missing Evidence
-    const noEvidenceResult = await orchestrator.processRequirement(
-      'REQ-TEST-001',
-      'Does your product run on quantum computing hardware?',
-      'Technical & Architecture',
-      false,
-      []
+    const auditResult = await orchestrator.auditLocationMedia(
+      'LOC-042',
+      'media_asset_042',
+      'CLEAN-001',
+      'Store entrance glass contains visible litter and dark smudges.',
+      3 // Previous 3 failures
     );
 
     if (
-      noEvidenceResult.answer.includes('Insufficient evidence') &&
-      noEvidenceResult.status === 'unsupported' &&
-      noEvidenceResult.confidence <= 50
+      auditResult.isRecurring === true &&
+      auditResult.recurrenceCount === 4 &&
+      auditResult.recommendedAction.includes('FORMAL CURE NOTICE')
     ) {
-      console.log('  ✓ Strict No-Evidence Rule passed: Correctly flagged unsupported claim without hallucination.');
+      console.log(`  ✓ Recurrence Detection passed: Flagged 4x recurring failure and recommended Formal Cure Notice.`);
       passed++;
     } else {
-      throw new Error('Failed No-Evidence rule check');
-    }
-
-    // Scenario B: High Confidence Evidence
-    const evidenceResult = await orchestrator.processRequirement(
-      'REQ-TEST-002',
-      'Describe encryption at rest.',
-      'Security',
-      true,
-      [
-        {
-          chunkId: 'chunk_1',
-          documentId: 'doc_1',
-          documentName: 'SOC 2 Audit Report.pdf',
-          section: 'Encryption',
-          pageNumber: 12,
-          content: 'Acme Telecom enforces AES-256 encryption at rest.',
-          relevanceScore: 0.95,
-        },
-        {
-          chunkId: 'chunk_2',
-          documentId: 'doc_2',
-          documentName: 'ISO 27001 Security Statement.pdf',
-          section: 'Data Protection',
-          pageNumber: 4,
-          content: 'Cloud databases encrypted using AES-256 keys.',
-          relevanceScore: 0.92,
-        },
-      ]
-    );
-
-    if (evidenceResult.confidence >= 90 && evidenceResult.answer.includes('AES-256')) {
-      console.log(`  ✓ High Confidence Evidence Grounding passed: Confidence ${evidenceResult.confidence}%, Answer: "${evidenceResult.answer.slice(0, 60)}..."`);
-      passed++;
-    } else {
-      throw new Error('Failed Evidence Grounding check');
+      throw new Error('Recurrence detection failed to trigger formal default warning');
     }
   } catch (err: any) {
-    console.error(`❌ [FAIL] Specialist agent test: ${err.message}`);
+    console.error(`❌ [FAIL] Recurrence test: ${err.message}`);
     failed++;
   }
 
@@ -131,4 +99,4 @@ async function runAllTests() {
   }
 }
 
-runAllTests();
+runFranchiseGuardTests();

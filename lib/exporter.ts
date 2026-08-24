@@ -1,117 +1,101 @@
-import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { jsPDF } from 'jspdf';
 import * as xlsx from 'xlsx';
 
-export interface ProposalExportData {
-  projectName: string;
-  customer: string;
-  deadline?: string;
-  rfpType: string;
-  requirements: Array<{
-    reqCode: string;
+export interface AuditExportData {
+  locationCode: string;
+  locationName: string;
+  address: string;
+  region: string;
+  manager: string;
+  complianceScore: number;
+  riskScore: number;
+  riskCategory: string;
+  violations: Array<{
+    violationCode: string;
+    standardCode: string;
     category: string;
-    question: string;
-    mandatory: boolean;
-    answer: string;
-    confidence: number;
-    risk: string;
+    title: string;
+    description: string;
+    severity: string;
     status: string;
-    reasoningSummary?: string;
-    evidences: Array<{
-      documentName: string;
-      section: string;
-      pageNumber: number;
-      relevanceScore: number;
-    }>;
+    isRecurring: boolean;
+    confidence: number;
+    aiExplanation?: string;
   }>;
 }
 
-export class ProposalExporter {
+export class FranchiseReportExporter {
   /**
-   * Generate DOCX Proposal Document Buffer
+   * Generate DOCX Audit & Cure Notice Report Buffer
    */
-  public async generateDocx(data: ProposalExportData): Promise<Buffer> {
+  public async generateDocx(data: AuditExportData): Promise<Buffer> {
     const doc = new Document({
       sections: [
         {
           properties: {},
           children: [
             new Paragraph({
-              text: `PROPOSAL RESPONSE: ${data.projectName.toUpperCase()}`,
+              text: `FRANCHISE COMPLIANCE AUDIT REPORT: ${data.locationName.toUpperCase()}`,
               heading: HeadingLevel.TITLE,
               alignment: AlignmentType.CENTER,
               spacing: { after: 200 },
             }),
             new Paragraph({
               children: [
-                new TextRun({ text: `Client / Customer: `, bold: true }),
-                new TextRun({ text: data.customer }),
+                new TextRun({ text: `Location Code: `, bold: true }),
+                new TextRun({ text: data.locationCode }),
+                new TextRun({ text: ` | Region: `, bold: true }),
+                new TextRun({ text: data.region }),
               ],
             }),
             new Paragraph({
               children: [
-                new TextRun({ text: `RFP Type: `, bold: true }),
-                new TextRun({ text: data.rfpType }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({ text: `Generated Date: `, bold: true }),
-                new TextRun({ text: new Date().toLocaleDateString() }),
+                new TextRun({ text: `Risk Category: `, bold: true }),
+                new TextRun({ text: `${data.riskCategory} (${data.riskScore}/100)` }),
+                new TextRun({ text: ` | Compliance Score: `, bold: true }),
+                new TextRun({ text: `${data.complianceScore}%` }),
               ],
               spacing: { after: 400 },
             }),
             new Paragraph({
-              text: '1. Executive Summary & Compliance Overview',
+              text: '1. Executive Compliance Overview',
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 200, after: 200 },
             }),
             new Paragraph({
-              text: `This proposal response package has been prepared by BidForge AI with evidence-backed verification across all requirement categories. Every answer includes verifiable references to official corporate documentation, security audits, and product specifications.`,
+              text: `This formal compliance audit report has been synthesized by FranchiseGuard AI with evidence-grounded visual and operational signal analysis. Recurring failures trigger formal default warnings under corporate brand standards.`,
               spacing: { after: 400 },
             }),
             new Paragraph({
-              text: '2. Detailed Requirement Responses & Compliance Matrix',
+              text: '2. Detected Standards Violations & Remediation Plan',
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 200, after: 200 },
             }),
-            ...data.requirements.flatMap((req) => [
+            ...data.violations.flatMap((v) => [
               new Paragraph({
-                text: `[${req.reqCode}] ${req.category} (${req.mandatory ? 'MANDATORY' : 'OPTIONAL'})`,
+                text: `[${v.violationCode}] ${v.standardCode} - ${v.title} (${v.severity} SEVERITY)`,
                 heading: HeadingLevel.HEADING_2,
                 spacing: { before: 200, after: 100 },
               }),
               new Paragraph({
                 children: [
-                  new TextRun({ text: `Requirement / Question: `, bold: true }),
-                  new TextRun({ text: req.question, italics: true }),
+                  new TextRun({ text: `Description: `, bold: true }),
+                  new TextRun({ text: v.description, italics: true }),
                 ],
                 spacing: { after: 100 },
               }),
               new Paragraph({
                 children: [
-                  new TextRun({ text: `Proposal Answer: `, bold: true }),
-                  new TextRun({ text: req.answer || 'No response provided.' }),
+                  new TextRun({ text: `Recurrence Status: `, bold: true }),
+                  new TextRun({ text: v.isRecurring ? 'RECURRING VIOLATION (CURE NOTICE MANDATORY)' : 'First Occurrence' }),
                 ],
                 spacing: { after: 100 },
               }),
               new Paragraph({
                 children: [
-                  new TextRun({ text: `Confidence Score: `, bold: true }),
-                  new TextRun({ text: `${req.confidence}% | Status: ${req.status.toUpperCase()} | Risk: ${req.risk.toUpperCase()}` }),
-                ],
-                spacing: { after: 100 },
-              }),
-              new Paragraph({
-                children: [
-                  new TextRun({ text: `Evidence References: `, bold: true }),
-                  new TextRun({
-                    text:
-                      req.evidences.length > 0
-                        ? req.evidences.map((e) => `${e.documentName} (Section ${e.section}, Page ${e.pageNumber})`).join('; ')
-                        : 'No direct evidence attached (Human Review Flagged).',
-                    italics: true,
-                  }),
+                  new TextRun({ text: `AI Explanation: `, bold: true }),
+                  new TextRun({ text: v.aiExplanation || 'Verified by multimodal vision agent.' }),
                 ],
                 spacing: { after: 300 },
               }),
@@ -126,46 +110,40 @@ export class ProposalExporter {
   }
 
   /**
-   * Generate PDF Proposal Document Buffer
+   * Generate PDF Location Audit Summary
    */
-  public generatePdf(data: ProposalExportData): Buffer {
+  public generatePdf(data: AuditExportData): Buffer {
     const doc = new jsPDF();
     let y = 20;
 
     doc.setFontSize(18);
-    doc.text(`Proposal Response: ${data.projectName}`, 14, y);
+    doc.text(`Franchise Compliance Report: ${data.locationName}`, 14, y);
     y += 10;
 
     doc.setFontSize(12);
-    doc.text(`Customer: ${data.customer}`, 14, y);
+    doc.text(`Location ID: ${data.locationCode} | Region: ${data.region}`, 14, y);
     y += 7;
-    doc.text(`RFP Type: ${data.rfpType}`, 14, y);
-    y += 7;
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, y);
+    doc.text(`Compliance Score: ${data.complianceScore}% | Risk: ${data.riskCategory} (${data.riskScore}/100)`, 14, y);
     y += 12;
 
     doc.setFontSize(14);
-    doc.text(`Requirements Summary (${data.requirements.length} Total):`, 14, y);
+    doc.text(`Active Violations (${data.violations.length} Total):`, 14, y);
     y += 10;
 
     doc.setFontSize(10);
-    for (let i = 0; i < Math.min(25, data.requirements.length); i++) {
-      const req = data.requirements[i];
+    for (let i = 0; i < Math.min(25, data.violations.length); i++) {
+      const v = data.violations[i];
       if (y > 270) {
         doc.addPage();
         y = 20;
       }
       doc.setFont('helvetica', 'bold');
-      doc.text(`[${req.reqCode}] ${req.category} - ${req.mandatory ? 'MANDATORY' : 'OPTIONAL'}`, 14, y);
+      doc.text(`[${v.violationCode}] ${v.standardCode} - ${v.severity} SEVERITY ${v.isRecurring ? '(RECURRING)' : ''}`, 14, y);
       y += 5;
       doc.setFont('helvetica', 'normal');
-      const qLines = doc.splitTextToSize(`Q: ${req.question}`, 180);
-      doc.text(qLines, 14, y);
-      y += qLines.length * 4.5 + 2;
-
-      const aLines = doc.splitTextToSize(`A: ${req.answer}`, 180);
-      doc.text(aLines, 14, y);
-      y += aLines.length * 4.5 + 5;
+      const lines = doc.splitTextToSize(`Details: ${v.description}`, 180);
+      doc.text(lines, 14, y);
+      y += lines.length * 4.5 + 5;
     }
 
     return Buffer.from(doc.output('arraybuffer'));
@@ -174,51 +152,44 @@ export class ProposalExporter {
   /**
    * Generate XLSX Compliance Matrix Buffer
    */
-  public generateXlsx(data: ProposalExportData): Buffer {
-    const rows = data.requirements.map((req) => ({
-      'Requirement ID': req.reqCode,
-      Category: req.category,
-      'Mandatory?': req.mandatory ? 'YES' : 'NO',
-      'Question / Clause': req.question,
-      'Proposal Response': req.answer,
-      'Confidence Score (%)': req.confidence,
-      'Risk Level': req.risk.toUpperCase(),
-      Status: req.status.toUpperCase(),
-      'Evidence Documents': req.evidences.map((e) => `${e.documentName} (P.${e.pageNumber})`).join(' | '),
-      'Reasoning Summary': req.reasoningSummary || '',
+  public generateXlsx(data: AuditExportData): Buffer {
+    const rows = data.violations.map((v) => ({
+      'Violation ID': v.violationCode,
+      'Standard Code': v.standardCode,
+      Category: v.category,
+      Title: v.title,
+      Severity: v.severity,
+      Status: v.status,
+      'Is Recurring?': v.isRecurring ? 'YES' : 'NO',
+      'Confidence (%)': v.confidence,
+      Description: v.description,
+      'AI Explanation': v.aiExplanation || '',
     }));
 
     const worksheet = xlsx.utils.json_to_sheet(rows);
     const workbook = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(workbook, worksheet, 'Compliance Matrix');
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Violations Matrix');
 
     return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 
   /**
-   * Generate Machine-Readable JSON Export Package
+   * Generate Machine-Readable JSON Bundle
    */
-  public generateJson(data: ProposalExportData): string {
+  public generateJson(data: AuditExportData): string {
     return JSON.stringify(
       {
-        bidforge_version: '1.0.0',
+        franchiseguard_version: '1.0.0',
         exported_at: new Date().toISOString(),
-        project: {
-          name: data.projectName,
-          customer: data.customer,
-          rfp_type: data.rfpType,
-          deadline: data.deadline,
+        location: {
+          code: data.locationCode,
+          name: data.locationName,
+          region: data.region,
+          compliance_score: data.complianceScore,
+          risk_score: data.riskScore,
+          risk_category: data.riskCategory,
         },
-        summary: {
-          total_requirements: data.requirements.length,
-          verified_count: data.requirements.filter((r) => r.status === 'verified').length,
-          needs_review_count: data.requirements.filter((r) => r.status === 'needs_review').length,
-          unsupported_count: data.requirements.filter((r) => r.status === 'unsupported').length,
-          average_confidence: (
-            data.requirements.reduce((acc, r) => acc + r.confidence, 0) / (data.requirements.length || 1)
-          ).toFixed(1),
-        },
-        requirements: data.requirements,
+        violations: data.violations,
       },
       null,
       2

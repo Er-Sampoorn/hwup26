@@ -1,0 +1,37 @@
+{
+  "name": "franchise_inspection_pipeline",
+  "version": "1.0.0",
+  "description": "Routine and scheduled location audit orchestration pipeline",
+  "components": [
+    {
+      "id": "inspection_scheduler",
+      "provider": "rocketride.scheduler.dynamic",
+      "config": {
+        "risk_intervals_days": {
+          "CRITICAL": 2,
+          "HIGH": 7,
+          "MEDIUM": 14,
+          "LOW": 30
+        }
+      },
+      "input": {
+        "location_risk_score": "pipeline_input.risk_score"
+      }
+    },
+    {
+      "id": "complaint_feed_analyzer",
+      "provider": "rocketride.nlp.sentiment",
+      "config": {
+        "aggregate_window_days": 7,
+        "complaint_threshold": 3
+      },
+      "input": {
+        "reviews": "pipeline_input.customer_feedbacks"
+      }
+    }
+  ],
+  "output": {
+    "next_inspection_date": "inspection_scheduler.output.next_date",
+    "complaint_signal_score": "complaint_feed_analyzer.output.signal_score"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "recurrence_analysis_pipeline",
+  "version": "1.0.0",
+  "description": "Cross-inspection recurrence detector flagging locations with repeated standard failures",
+  "components": [
+    {
+      "id": "recurrence_detector",
+      "provider": "rocketride.analyzer.recurrence",
+      "config": {
+        "lookback_inspections": 5,
+        "recurrence_threshold": 2
+      },
+      "input": {
+        "location_history": "pipeline_input.past_violations"
+      }
+    }
+  ],
+  "output": {
+    "recurring_violations": "recurrence_detector.output.recurrent_items",
+    "escalation_flags": "recurrence_detector.output.escalations"
+  }
+}

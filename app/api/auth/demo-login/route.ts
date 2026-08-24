@@ -4,10 +4,10 @@ import { seedDemoDatabase } from '@/demo/seed';
 
 export async function POST() {
   try {
-    let org = await db.organization.findUnique({ where: { slug: 'acme-telecom' } });
+    let org = await db.organization.findUnique({ where: { slug: 'burgercraft-corporate' } });
     if (!org) {
       await seedDemoDatabase();
-      org = await db.organization.findUnique({ where: { slug: 'acme-telecom' } });
+      org = await db.organization.findUnique({ where: { slug: 'burgercraft-corporate' } });
     }
 
     let user = await db.user.findFirst({ where: { organizationId: org?.id } });
@@ -27,7 +27,7 @@ export async function POST() {
       },
     });
 
-    response.cookies.set('bidforge_session', JSON.stringify({ userId: user?.id, orgId: user?.organizationId }), {
+    response.cookies.set('franchiseguard_session', JSON.stringify({ userId: user?.id, orgId: user?.organizationId }), {
       httpOnly: true,
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
