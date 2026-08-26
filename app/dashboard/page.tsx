@@ -19,6 +19,12 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Staging Integration State
+  const [stagingInfo, setStagingInfo] = useState<any>(null);
+  const [stagingDeploying, setStagingDeploying] = useState(false);
+  const [stagingResult, setStagingResult] = useState<any>(null);
+  const [showStagingModal, setShowStagingModal] = useState(false);
+
   // Form State
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -26,6 +32,35 @@ export default function DashboardPage() {
   const [region, setRegion] = useState('North East');
   const [manager, setManager] = useState('');
   const [creating, setCreating] = useState(false);
+
+  const fetchStagingInfo = async () => {
+    try {
+      const res = await fetch('/api/rocketride/staging');
+      const data = await res.json();
+      if (data.success) {
+        setStagingInfo(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch staging info', err);
+    }
+  };
+
+  const handleDeployToStaging = async () => {
+    setStagingDeploying(true);
+    try {
+      const res = await fetch('/api/rocketride/staging', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setStagingResult(data.deployment);
+        setShowStagingModal(true);
+        fetchStagingInfo();
+      }
+    } catch (err) {
+      console.error('Staging deployment error', err);
+    } finally {
+      setStagingDeploying(false);
+    }
+  };
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -49,6 +84,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchLocations();
+    fetchStagingInfo();
   }, [selectedRegion, selectedRisk, searchTerm]);
 
   const handleCreateLocation = async (e: React.FormEvent) => {

@@ -90,6 +90,29 @@ async function runFranchiseGuardTests() {
     failed++;
   }
 
+  // Test 4: RocketRide Staging Process Integration & Deployment Verification
+  console.log('\nTest 4: Testing RocketRide Staging Process Integration & Deployment...');
+  try {
+    const { RocketRideStagingService } = await import('../lib/rocketride-staging');
+    const stagingService = new RocketRideStagingService();
+    const health = stagingService.getStagingHealth();
+
+    if (health.status === 'ONLINE' && health.pipeCount > 0 && health.promoCode === 'INDIAHACK') {
+      const depResult = await stagingService.deployToStaging();
+      if (depResult.success && depResult.pipesCount === health.pipeCount) {
+        console.log(`  ✓ RocketRide Staging Integration passed: Target '${health.stagingUrl}', Promo Code '${health.promoCode}', Deployed ${depResult.pipesCount} .pipe files successfully.`);
+        passed++;
+      } else {
+        throw new Error('Staging deployment returned unsuccessful response');
+      }
+    } else {
+      throw new Error('Staging health check failed or promo code missing');
+    }
+  } catch (err: any) {
+    console.error(`❌ [FAIL] Staging integration test: ${err.message}`);
+    failed++;
+  }
+
   console.log(`\n==========================================`);
   console.log(`Test Results: ${passed} Passed, ${failed} Failed`);
   console.log(`==========================================\n`);
