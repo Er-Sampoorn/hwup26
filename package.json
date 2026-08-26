@@ -1,5 +1,5 @@
 {
-  "name": "bidforge-ai",
+  "name": "franchiseguard-ai",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
+    "postinstall": "prisma generate",
     "seed": "npx tsx demo/seed.ts",
     "test": "npx tsx scripts/run-tests.ts"
   },
