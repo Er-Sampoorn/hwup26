@@ -3,20 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --background: 7 10 18;
-  --foreground: 243 244 246;
+  --background: 6 9 19;
+  --foreground: 248 250 252;
 }
 
 body {
   color: rgb(var(--foreground));
-  background-color: #070a12;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #060913;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow-x: hidden;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.04) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.03) 0px, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(245, 158, 11, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(6, 182, 212, 0.05), transparent),
+    radial-gradient(ellipse 60% 50% at 10% 30%, rgba(99, 102, 241, 0.04), transparent);
   background-attachment: fixed;
+}
+
+/* Precision Background Dot Grid */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Custom scrollbars */
@@ -25,7 +31,7 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090e1a;
+  background: #060913;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
@@ -35,55 +41,56 @@ body {
   background: #334155;
 }
 
-/* Ultra-Premium Glassmorphism Panels */
+/* Ultra-Luxury Glassmorphic Panels */
 .glass-panel {
-  background: rgba(13, 21, 39, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(11, 18, 36, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glass-panel-glow {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: rgba(14, 22, 44, 0.85);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.2), 0 20px 40px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .glass-card {
-  background: rgba(14, 22, 41, 0.65);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(11, 18, 36, 0.65);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(17, 27, 50, 0.85);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(15, 25, 50, 0.85);
+  border-color: rgba(245, 158, 11, 0.35);
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.6), 0 0 20px -3px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.7), 0 0 25px -5px rgba(245, 158, 11, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.cyber-badge {
-  position: relative;
-  overflow: hidden;
-}
-.cyber-badge::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-  animation: badgeShine 3s infinite;
+/* Metallic Platinum & Champagne Typography Gradients */
+.text-gradient-platinum {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 65%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@keyframes badgeShine {
-  0% { left: -100%; }
-  20% { left: 100%; }
-  100% { left: 100%; }
+.text-gradient-gold {
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Monospace numerals */
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #A5F3FC 0%, #06B6D4 50%, #0284C7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .num-tabular {
   font-variant-numeric: tabular-nums;
 }

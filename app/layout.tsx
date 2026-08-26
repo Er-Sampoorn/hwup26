@@ -32,7 +32,7 @@ export default function RootLayout({
                 RocketRide .pipe Multi-Agent Engine Active
               </span>
               <span>•</span>
-              <span className="text-emerald-400 font-semibold">Zero False Accusation SLA ($\ge 90\%$ Conf)</span>
+              <span className="text-emerald-400 font-semibold">Zero False Accusation SLA (≥ 90% Conf)</span>
               <span>•</span>
               <span className="text-slate-500">National Innovation Showcase 2026</span>
             </div>
