@@ -52,14 +52,9 @@ export function SolineLogo({
     <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       <SolineIcon className={iconSizes[size]} />
       {showText && (
-        <div className="flex items-center gap-1.5">
-          <span className={`font-black tracking-tight ${textSizes[size]} ${textColor}`}>
-            SOLINE
-          </span>
-          <span className="text-[9px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-black text-white leading-none">
-            AI
-          </span>
-        </div>
+        <span className={`font-black tracking-tight ${textSizes[size]} ${textColor}`}>
+          SOLINE
+        </span>
       )}
     </div>
   );
