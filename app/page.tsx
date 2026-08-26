@@ -9,6 +9,7 @@ import {
   ExternalLink, ChevronRight, Play, Terminal, Database, MessageSquare,
   Thermometer, Sparkle, Flame, UtensilsCrossed, Store
 } from 'lucide-react';
+import { SolineLogo, SolineIcon } from '@/components/soline-logo';
 
 export default function LandingPage() {
   const [selectedPipe, setSelectedPipe] = useState<'full' | 'ingestion' | 'violation' | 'risk' | 'recurrence' | 'review'>('full');
@@ -459,7 +460,7 @@ export default function LandingPage() {
               RocketRide Multi-Agent Architecture
             </h2>
             <p className="text-xs sm:text-sm text-slate-400">
-              FranchiseGuard AI orchestrates 10 specialized AI agents through modular declarative .pipe files.
+              SOLINE orchestrates 10 specialized AI agents through modular declarative .pipe files.
             </p>
           </div>
 
@@ -549,7 +550,7 @@ export default function LandingPage() {
                 <p className="text-lg font-bold text-rose-400 mt-1 num-tabular">${annualPhysicalCost.toLocaleString()}</p>
               </div>
               <div className="p-4 rounded-2xl bg-black border border-white/10">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold block">FranchiseGuard AI</span>
+                <span className="text-[10px] uppercase text-slate-500 font-semibold block">SOLINE Autonomous AI</span>
                 <p className="text-lg font-bold text-cyan-300 mt-1 num-tabular">${Math.round(franchiseGuardAnnualCost).toLocaleString()}</p>
               </div>
               <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800">
@@ -566,13 +567,10 @@ export default function LandingPage() {
       <footer className="bg-black text-slate-400 py-12 px-4 sm:px-6 lg:px-8 border-t border-cyber-borderDark">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black font-black text-xs">
-              FG
-            </div>
-            <div>
-              <span className="text-white font-bold text-sm block">FranchiseGuard AI</span>
-              <span className="text-[11px] text-slate-500">Problem Statement #18 • National AI Innovation Showcase 2026</span>
-            </div>
+            <SolineLogo size="sm" theme="dark" />
+            <span className="text-[11px] text-slate-500">
+              Problem Statement #18 • National AI Innovation Showcase 2026
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-xs">

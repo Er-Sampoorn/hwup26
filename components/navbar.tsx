@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  ShieldCheck, Search, Building2, Sparkles, CheckCircle2, AlertOctagon,
-  Layers, UserCheck, Heart, ShoppingBag, SlidersHorizontal
+  Search, Building2, Sparkles, CheckCircle2, AlertOctagon,
+  Layers, UserCheck
 } from 'lucide-react';
+import { SolineLogo, SolineIcon } from '@/components/soline-logo';
 
 export default function Navbar() {
   const router = useRouter();
@@ -47,19 +48,9 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full bg-white border-b border-cyber-borderLight transition-all">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
         
-        {/* LEFT: Cyber-Style Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black text-white group-hover:scale-105 transition-transform">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black tracking-tight text-black">
-              FranchiseGuard
-            </span>
-            <span className="text-[10px] font-mono font-black uppercase px-1.5 py-0.5 rounded bg-black text-white">
-              AI
-            </span>
-          </div>
+        {/* LEFT: SOLINE Ultra-Minimal Luxury Logo */}
+        <Link href="/" className="flex items-center group shrink-0">
+          <SolineLogo size="md" theme="light" className="group-hover:opacity-85 transition-opacity" />
         </Link>
 
         {/* CENTER: Cyber Search Input Bar */}

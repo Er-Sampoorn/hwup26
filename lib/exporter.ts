@@ -64,7 +64,7 @@ export class FranchiseReportExporter {
               spacing: { before: 200, after: 200 },
             }),
             new Paragraph({
-              text: `This formal compliance audit report has been synthesized by FranchiseGuard AI with evidence-grounded visual and operational signal analysis. Recurring failures trigger formal default warnings under corporate brand standards.`,
+              text: `This formal compliance audit report has been synthesized by SOLINE with evidence-grounded visual and operational signal analysis. Recurring failures trigger formal default warnings under corporate brand standards.`,
               spacing: { after: 400 },
             }),
             new Paragraph({

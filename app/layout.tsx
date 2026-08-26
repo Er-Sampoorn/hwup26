@@ -3,7 +3,7 @@ import './globals.css';
 import Navbar from '@/components/navbar';
 
 export const metadata: Metadata = {
-  title: 'FranchiseGuard AI — Multimodal Franchise Compliance Intelligence Platform',
+  title: 'SOLINE — Autonomous Franchise Compliance Intelligence Platform',
   description: 'Enterprise AI continuous compliance intelligence for franchise networks. Powered natively by RocketRide declarative .pipe pipelines. Zero false accusations.',
 };
 

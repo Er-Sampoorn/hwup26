@@ -3,12 +3,12 @@ import path from 'path';
 import { FranchiseAgentOrchestrator, calculateLocationRiskScore } from '../lib/agents';
 
 async function runFranchiseGuardTests() {
-  console.log('🧪 Starting FranchiseGuard AI Automated Test Suite...\n');
+  console.log('🧪 Starting SOLINE Automated Test Suite...\n');
   let passed = 0;
   let failed = 0;
 
   // Test 1: RocketRide .pipe JSON Schema Validation
-  console.log('Test 1: Validating RocketRide .pipe files for FranchiseGuard AI...');
+  console.log('Test 1: Validating RocketRide .pipe files for SOLINE...');
   const pipeFiles = [
     'rocketride/full_audit_pipeline.pipe',
     'rocketride/media_ingestion.pipe',

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ShieldCheck, ArrowRight, Sparkles, KeyRound, Mail, UserCheck, Building2, ShieldAlert } from 'lucide-react';
 
+import { SolineIcon, SolineLogo } from '@/components/soline-logo';
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,11 +33,11 @@ export default function LoginPage() {
         
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-white mb-2">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="inline-flex items-center justify-center mb-2">
+            <SolineIcon className="h-12 w-12" />
           </div>
-          <h2 className="text-2xl font-black text-black">Sign In to FranchiseGuard</h2>
-          <p className="text-xs text-cyber-grayText">Enterprise Franchise Compliance Intelligence Platform</p>
+          <h2 className="text-2xl font-black text-black">Sign In to SOLINE</h2>
+          <p className="text-xs text-cyber-grayText">Autonomous Franchise Compliance Intelligence Platform</p>
         </div>
 
         {/* Instant Role Switcher */}
