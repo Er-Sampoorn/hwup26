@@ -3,20 +3,37 @@ import { db } from '../lib/db';
 export async function seedDemoDatabase() {
   console.log('🌱 Seeding FranchiseGuard AI Demo Dataset...');
 
-  // 1. Create Organization
+  // 1. Create / Upsert Organization
   const org = await db.organization.upsert({
     where: { slug: 'burgercraft-corporate' },
-    update: {},
+    update: { name: 'BurgerCraft National Franchises Inc.' },
     create: {
       name: 'BurgerCraft National Franchises Inc.',
       slug: 'burgercraft-corporate',
     },
   });
 
-  // 2. Create Users
+  // 2. Clean existing records for fresh demo state
+  await db.violationEvidence.deleteMany({}).catch(() => {});
+  await db.correctiveAction.deleteMany({}).catch(() => {});
+  await db.violation.deleteMany({}).catch(() => {});
+  await db.mediaAnalysis.deleteMany({}).catch(() => {});
+  await db.mediaAsset.deleteMany({}).catch(() => {});
+  await db.customerFeedback.deleteMany({}).catch(() => {});
+  await db.operationalSignal.deleteMany({}).catch(() => {});
+  await db.riskScore.deleteMany({}).catch(() => {});
+  await db.pipelineRun.deleteMany({}).catch(() => {});
+  await db.agentRun.deleteMany({}).catch(() => {});
+  await db.auditLog.deleteMany({}).catch(() => {});
+  await db.inspection.deleteMany({}).catch(() => {});
+  await db.location.deleteMany({}).catch(() => {});
+  await db.franchiseOwner.deleteMany({}).catch(() => {});
+  await db.standard.deleteMany({}).catch(() => {});
+
+  // 3. Create User
   const opsUser = await db.user.upsert({
     where: { email: 'ops.manager@burgercraft.com' },
-    update: {},
+    update: { name: 'Sarah Jenkins (Franchise Ops Manager)' },
     create: {
       email: 'ops.manager@burgercraft.com',
       name: 'Sarah Jenkins (Franchise Ops Manager)',
@@ -26,7 +43,7 @@ export async function seedDemoDatabase() {
     },
   });
 
-  // 3. Create Brand Standards Catalog
+  // 4. Create Brand Standards Catalog
   const brandStandardsSpecs = [
     { code: 'CLEAN-001', title: 'Store Entrance & Window Cleanliness', category: 'Cleanliness', description: 'Storefront glass, entrance doors, and sidewalk must be free of debris, smudges, and litter.', severity: 'MEDIUM', hours: 48 },
     { code: 'FOOD-002', title: 'Food Prep Temperature Control & Labeling', category: 'Food Safety', description: 'Refrigerated prep units must hold ingredients at <= 41°F with clear expiration date labels.', severity: 'CRITICAL', hours: 12 },
@@ -52,8 +69,7 @@ export async function seedDemoDatabase() {
     createdStandards.push(std);
   }
 
-  // 4. Create Franchise Owners (10 Owners)
-  const regions = ['North East', 'South East', 'Midwest', 'Central', 'West Coast'];
+  // 5. Create Franchise Owners (10 Owners)
   const owners = [];
   for (let i = 1; i <= 10; i++) {
     const owner = await db.franchiseOwner.create({
@@ -68,7 +84,7 @@ export async function seedDemoDatabase() {
     owners.push(owner);
   }
 
-  // 5. Create 50 Locations across Regions
+  // 6. Create 50 Locations across 5 Regions
   const cities = [
     { name: 'Boston', state: 'MA', region: 'North East' },
     { name: 'New York', state: 'NY', region: 'North East' },
@@ -118,7 +134,7 @@ export async function seedDemoDatabase() {
     createdLocations.push(loc);
   }
 
-  // 6. Create Inspections, Media Assets, Violations, & Remediation Evidence (200+ Assets)
+  // 7. Create Inspections, Media Assets, Violations, & Remediation Evidence (200+ Assets)
   for (const loc of createdLocations) {
     const isHeroLocation = loc.code === 'LOC-042';
 
@@ -149,7 +165,7 @@ export async function seedDemoDatabase() {
       await db.mediaAnalysis.create({
         data: {
           mediaAssetId: asset.id,
-          summaryText: `Multimodal visual audit of ${loc.name} photo #${m}. Detected operational state and surface condition.`,
+          summaryText: `Multimodal visual audit of ${loc.name} photo #${m}. Detected operational surface state.`,
           detectedJson: JSON.stringify({ objects: ['storefront', 'signage', 'counter'], confidence: 0.94 }),
         },
       });
@@ -201,7 +217,7 @@ export async function seedDemoDatabase() {
       }
     }
 
-    // 7. Create Customer Complaint & Review Feeds (100+ Reviews across locations)
+    // 8. Create Customer Complaint & Review Feeds (100+ Reviews across locations)
     for (let c = 1; c <= 2; c++) {
       await db.customerFeedback.create({
         data: {
@@ -218,7 +234,7 @@ export async function seedDemoDatabase() {
     }
   }
 
-  // 8. Create Sample Pipeline Run Record
+  // 9. Create Sample Pipeline Run Record
   const heroLoc = createdLocations.find((l) => l.code === 'LOC-042') || createdLocations[0];
   await db.pipelineRun.create({
     data: {
@@ -235,7 +251,7 @@ export async function seedDemoDatabase() {
     },
   });
 
-  // 9. Audit Log
+  // 10. Audit Log
   await db.auditLog.create({
     data: {
       locationId: heroLoc.id,

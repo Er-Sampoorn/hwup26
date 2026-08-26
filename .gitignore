@@ -20,10 +20,10 @@ yarn-error.log*
 .env
 
 # database
-prisma/*.db
 prisma/*.db-journal
-*.db
 *.db-journal
+!dev.db
+!prisma/dev.db
 
 # vercel
 .vercel
