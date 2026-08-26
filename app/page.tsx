@@ -144,11 +144,6 @@ export default function LandingPage() {
             
             {/* Left Column: Cyber Hero Text */}
             <div className="lg:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold tracking-wide">
-                <Cpu className="h-3.5 w-3.5 text-cyan-400" />
-                <span>Problem Statement #18 • <strong>National AI Innovation Showcase 2026</strong></span>
-              </div>
-
               <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
                 Autonomous Compliance Intelligence for Every Franchise Location
               </h1>
@@ -569,7 +564,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <SolineLogo size="sm" theme="dark" />
             <span className="text-[11px] text-slate-500">
-              Problem Statement #18 • National AI Innovation Showcase 2026
+              Autonomous Enterprise Compliance Intelligence Platform
             </span>
           </div>
 

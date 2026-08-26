@@ -138,7 +138,7 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-cyber-grayText">
-                Operations Portal • Problem Statement #18
+                Operations Command • Autonomous Telemetry
               </span>
               <h1 className="text-3xl font-black text-black mt-1">
                 Franchise Network Command
