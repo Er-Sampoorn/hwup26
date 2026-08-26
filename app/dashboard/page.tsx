@@ -6,7 +6,7 @@ import {
   Plus, Building2, ShieldCheck, Cpu, ArrowRight, Sparkles, CheckCircle2,
   Clock, FileText, AlertTriangle, Layers, AlertOctagon, RefreshCw, MapPin,
   Search, Filter, LayoutGrid, List, SlidersHorizontal, ArrowUpDown, ChevronRight,
-  TrendingDown, TrendingUp, UserCheck
+  TrendingDown, TrendingUp, UserCheck, X
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -63,7 +63,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ code, name, address, region, manager }),
       });
       const data = await res.json();
-      if (data.location) {
+      if (data.success) {
         setShowCreateModal(false);
         setCode('');
         setName('');
@@ -72,13 +72,12 @@ export default function DashboardPage() {
         fetchLocations();
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error creating store:', err);
     } finally {
       setCreating(false);
     }
   };
 
-  // Sort locations
   const sortedLocations = [...locations].sort((a, b) => {
     if (sortBy === 'risk_desc') return b.riskScore - a.riskScore;
     if (sortBy === 'risk_asc') return a.riskScore - b.riskScore;
@@ -86,348 +85,277 @@ export default function DashboardPage() {
     return a.code.localeCompare(b.code);
   });
 
-  const criticalCount = locations.filter((l) => l.riskCategory === 'CRITICAL').length;
-  const highRiskCount = locations.filter((l) => l.riskCategory === 'HIGH').length;
-  const mediumCount = locations.filter((l) => l.riskCategory === 'MEDIUM').length;
-  const healthyCount = locations.filter((l) => l.riskCategory === 'LOW').length;
-
-  const heroLocation = locations.find((l) => l.code === 'LOC-042') || locations[0];
+  const totalStores = locations.length;
+  const criticalStores = locations.filter((l) => l.riskCategory === 'CRITICAL').length;
+  const highRiskStores = locations.filter((l) => l.riskCategory === 'HIGH').length;
+  const avgCompliance =
+    totalStores > 0
+      ? (locations.reduce((acc, l) => acc + l.complianceScore, 0) / totalStores).toFixed(1)
+      : '0';
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1. TOP EXECUTIVE HEADER */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
-              NATIONAL PITCH SHOWCASE
-            </span>
-            <span className="text-xs text-slate-400 font-mono">RocketRide .pipe Multi-Agent Active</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-            <Building2 className="h-7 w-7 text-amber-400" />
-            Franchise Operations Compliance Command Center
-          </h1>
-          <p className="text-xs text-slate-300 mt-1">
-            Continuous Multimodal Audit Intelligence • 50 Locations Indexed • Zero False Accusation SLA
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchLocations}
-            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 transition-colors shadow-sm"
-            title="Refresh Telemetry"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
-          </button>
-
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2.5 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" /> Register New Store
-          </button>
-        </div>
-      </div>
-
-      {/* 2. KPI OVERVIEW STRIP */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        <div className="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Network</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-white num-tabular">{locations.length}</span>
-            <span className="text-[10px] text-blue-400 font-mono">5 Regions</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-card border border-emerald-500/30 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Healthy Stores</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-emerald-400 num-tabular">{healthyCount}</span>
-            <span className="text-[10px] text-emerald-400/80 font-mono">Compliance &gt; 90%</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-card border border-amber-500/30 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Watchlist (Medium)</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-amber-400 num-tabular">{mediumCount}</span>
-            <span className="text-[10px] text-amber-400/80 font-mono">Monitoring</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-card border border-rose-500/40 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">High / Critical Risk</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-rose-400 num-tabular">{highRiskCount + criticalCount}</span>
-            <span className="text-[10px] text-rose-400/80 font-mono">Immediate Action</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-card border border-cyan-500/30 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Recurrence Rate</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-cyan-300 num-tabular">14.2%</span>
-            <span className="text-[10px] text-cyan-400/80 font-mono">Repeat Violators</span>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-2xl glass-card border border-purple-500/30 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Est. AI Cost</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-black text-slate-100 num-tabular">$0.11</span>
-            <span className="text-[10px] text-purple-400 font-mono">RocketRide</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. HERO CRITICAL RECURRENT ALERT FOR LOCATION #042 */}
-      {heroLocation && (
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-950/70 via-slate-900/90 to-slate-900/90 border border-rose-500/60 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/20 border border-rose-500/50 text-rose-400 shrink-0">
-              <AlertOctagon className="h-6 w-6 animate-pulse" />
+    <div className="min-h-screen bg-white text-cyber-darkText pb-20">
+      
+      {/* 1. TOP HEADER & KPI STRIP */}
+      <div className="border-b border-cyber-borderLight bg-[#FAFAFA] py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-cyber-grayText">
+                Operations Portal • Problem Statement #18
+              </span>
+              <h1 className="text-3xl font-black text-black mt-1">
+                Franchise Network Command
+              </h1>
             </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-rose-300 bg-rose-950 px-2 py-0.5 rounded border border-rose-800">
-                  {heroLocation.code}
-                </span>
-                <span className="text-xs font-bold uppercase text-rose-300 tracking-wide flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
-                  CRITICAL CHRONIC RISK (Risk Score: {heroLocation.riskScore}/100)
-                </span>
-              </div>
-              <h3 className="text-lg font-black text-white">{heroLocation.name}</h3>
-              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                Failed Standard <strong className="text-amber-300">CLEAN-001 (Storefront Cleanliness)</strong> in <strong>4 consecutive audits</strong>. Correlated with negative Google Review feedback. Formal Brand Default & Cure Notice recommended under Clause 14.2.
-              </p>
-            </div>
-          </div>
 
-          <Link
-            href={`/locations/${heroLocation.id}`}
-            className="px-5 py-3 text-xs font-extrabold text-white rounded-xl bg-rose-600 hover:bg-rose-500 shadow-xl shadow-rose-600/30 transition-all shrink-0 flex items-center gap-2 group hover:scale-[1.02]"
-          >
-            <span>Review Cure Notice</span>
-            <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-      )}
-
-      {/* 4. REGIONAL RISK GRID & HEATMAP */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-amber-400" /> Regional Compliance Health Grid
-          </h2>
-          <span className="text-xs text-slate-400 font-mono">5 Operational Regions</span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {['North East', 'South East', 'Midwest', 'Central', 'West Coast'].map((reg) => {
-            const locsInRegion = locations.filter((l) => l.region === reg);
-            const avgRisk = locsInRegion.length > 0
-              ? (locsInRegion.reduce((acc, l) => acc + l.riskScore, 0) / locsInRegion.length).toFixed(0)
-              : '15';
-            const numScore = parseInt(avgRisk);
-            const isSelected = selectedRegion === reg;
-
-            return (
+            <div className="flex items-center gap-3">
               <button
-                key={reg}
-                onClick={() => setSelectedRegion(isSelected ? 'ALL' : reg)}
-                className={`p-4 rounded-2xl border text-left transition-all ${
-                  isSelected
-                    ? 'bg-amber-950/70 border-amber-500 ring-1 ring-amber-500 shadow-lg shadow-amber-500/15'
-                    : 'glass-card hover:border-slate-700'
-                }`}
+                onClick={() => setShowCreateModal(true)}
+                className="cyber-btn-black text-xs py-2.5 px-4 rounded-xl"
               >
-                <div className="flex justify-between items-center text-[11px] font-bold text-slate-400">
-                  <span>{reg}</span>
-                  {isSelected && <span className="text-[10px] text-amber-400 font-mono">ACTIVE</span>}
-                </div>
-                <div className="mt-2 flex items-baseline justify-between">
-                  <span className="text-lg font-black text-white num-tabular">{locsInRegion.length} Stores</span>
-                  <span className={`text-xs font-mono font-bold ${numScore >= 60 ? 'text-rose-400' : numScore >= 30 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    Avg Risk: {avgRisk}
-                  </span>
-                </div>
+                <Plus className="h-4 w-4" />
+                <span>Add Store Location</span>
               </button>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* 4 Cyber KPI Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="cyber-card p-4 bg-white">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyber-grayText block">
+                Total Stores Monitored
+              </span>
+              <p className="text-2xl font-black text-black mt-1 num-tabular">{totalStores}</p>
+              <span className="text-[10px] text-cyber-grayText">5 Geographic Regions</span>
+            </div>
+
+            <div className="cyber-card p-4 bg-white">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyber-grayText block">
+                Network Avg Compliance
+              </span>
+              <p className="text-2xl font-black text-black mt-1 num-tabular">{avgCompliance}%</p>
+              <span className="text-[10px] text-emerald-600 font-semibold">Grounded in AI Vision SLA</span>
+            </div>
+
+            <div className="cyber-card p-4 bg-white border-amber-300">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block">
+                Action Required
+              </span>
+              <p className="text-2xl font-black text-amber-600 mt-1 num-tabular">{highRiskStores} Stores</p>
+              <span className="text-[10px] text-amber-700/80">Audit Remediation Active</span>
+            </div>
+
+            <div className="cyber-card p-4 bg-white border-rose-300">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 block">
+                Critical (Clause 14.2)
+              </span>
+              <p className="text-2xl font-black text-rose-600 mt-1 num-tabular">{criticalStores} Store (LOC-042)</p>
+              <span className="text-[10px] text-rose-700/80">Cure Notice Review</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 5. LOCATIONS DIRECTORY WITH ADVANCED CONTROLS */}
-      <div className="space-y-4">
-        {/* Controls Bar */}
-        <div className="p-4 rounded-2xl glass-panel flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search code, city, store, manager..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white w-64 focus:outline-none focus:border-amber-500"
-              />
-            </div>
+      {/* 2. FILTER & CATALOG CONTROLS (Cyber Products Page Filter Bar) */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 rounded-2xl bg-[#FAFAFA] border border-cyber-borderLight">
+          
+          {/* Search Input */}
+          <div className="relative w-full lg:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyber-grayText" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search store name, code, manager..."
+              className="w-full bg-white text-xs pl-9 pr-4 py-2 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
+            />
+          </div>
+
+          {/* Filters & Toggles */}
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            {/* Region Filter */}
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="bg-white text-xs px-3 py-2 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none font-semibold text-black"
+            >
+              <option value="ALL">All Regions (5)</option>
+              <option value="North East">North East</option>
+              <option value="South East">South East</option>
+              <option value="Midwest">Midwest</option>
+              <option value="Central">Central</option>
+              <option value="West Coast">West Coast</option>
+            </select>
 
             {/* Risk Filter */}
             <select
               value={selectedRisk}
               onChange={(e) => setSelectedRisk(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-amber-500"
+              className="bg-white text-xs px-3 py-2 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none font-semibold text-black"
             >
               <option value="ALL">All Risk Levels</option>
-              <option value="CRITICAL">Critical Risk (80-100)</option>
-              <option value="HIGH">High Risk (60-79)</option>
-              <option value="MEDIUM">Medium Risk (30-59)</option>
-              <option value="LOW">Low Risk (0-29)</option>
+              <option value="CRITICAL">Critical (≥ 80)</option>
+              <option value="HIGH">High (60–79)</option>
+              <option value="MEDIUM">Medium (30–59)</option>
+              <option value="LOW">Low (0–29)</option>
             </select>
 
-            {/* Sort Dropdown */}
+            {/* Sort */}
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-amber-500"
+              onChange={(e: any) => setSortBy(e.target.value)}
+              className="bg-white text-xs px-3 py-2 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none font-semibold text-black"
             >
-              <option value="risk_desc">Highest Risk Score</option>
-              <option value="risk_asc">Lowest Risk Score</option>
-              <option value="compliance_desc">Highest Compliance %</option>
-              <option value="code">Store Code (A-Z)</option>
+              <option value="risk_desc">Risk: Highest First</option>
+              <option value="risk_asc">Risk: Lowest First</option>
+              <option value="compliance_desc">Compliance: Highest First</option>
+              <option value="code">Store Code</option>
             </select>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-950 rounded-xl p-0.5 border border-slate-800">
+            {/* View Mode Buttons */}
+            <div className="flex items-center rounded-xl bg-white border border-cyber-borderLight p-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
-                  viewMode === 'grid' ? 'bg-amber-500/20 text-amber-400 font-bold' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Grid Cards View"
+                className={`p-1.5 rounded-lg text-xs ${viewMode === 'grid' ? 'bg-black text-white' : 'text-slate-400 hover:text-black'}`}
+                title="Grid View"
               >
                 <LayoutGrid className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-lg text-xs transition-colors ${
-                  viewMode === 'table' ? 'bg-amber-500/20 text-amber-400 font-bold' : 'text-slate-400 hover:text-white'
-                }`}
-                title="Dense Table View"
+                className={`p-1.5 rounded-lg text-xs ${viewMode === 'table' ? 'bg-black text-white' : 'text-slate-400 hover:text-black'}`}
+                title="Table View"
               >
                 <List className="h-4 w-4" />
               </button>
             </div>
-
-            <span className="text-xs text-slate-400 font-mono">
-              Showing <strong>{sortedLocations.length}</strong> location(s)
-            </span>
           </div>
         </div>
 
-        {/* VIEW 1: GRID CARDS VIEW */}
-        {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedLocations.map((loc) => (
-              <div
-                key={loc.id}
-                className="p-6 rounded-3xl glass-card flex flex-col justify-between group shadow-xl"
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs mb-3">
-                    <span className="font-mono text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-lg border border-amber-800">
-                      {loc.code}
+        {/* 3. STORE CATALOG VIEW (Grid / Table) */}
+        {loading ? (
+          <div className="py-20 text-center space-y-3">
+            <RefreshCw className="h-8 w-8 animate-spin text-black mx-auto" />
+            <p className="text-xs text-cyber-grayText">Loading franchise stores...</p>
+          </div>
+        ) : sortedLocations.length === 0 ? (
+          <div className="py-20 text-center space-y-4 cyber-card p-12">
+            <Building2 className="h-12 w-12 text-slate-300 mx-auto" />
+            <h3 className="text-base font-bold text-black">No franchise stores match your filter</h3>
+            <button
+              onClick={() => { setSelectedRegion('ALL'); setSelectedRisk('ALL'); setSearchTerm(''); }}
+              className="cyber-btn-black text-xs py-2 px-4 rounded-xl"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : viewMode === 'grid' ? (
+          /* CYBER PRODUCT CARDS GRID */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {sortedLocations.map((loc) => {
+              const isHero = loc.code === 'LOC-042';
+              return (
+                <div
+                  key={loc.id}
+                  className={`cyber-card p-5 flex flex-col justify-between space-y-4 relative ${
+                    isHero ? 'border-rose-500 bg-rose-50/20' : ''
+                  }`}
+                >
+                  {/* Badge & Region */}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`cyber-badge ${
+                        loc.riskCategory === 'CRITICAL'
+                          ? 'bg-rose-100 text-rose-700'
+                          : loc.riskCategory === 'HIGH'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}
+                    >
+                      {loc.riskCategory} RISK
                     </span>
-                    <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
-                      loc.riskCategory === 'CRITICAL'
-                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
-                        : loc.riskCategory === 'HIGH'
-                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                        : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                    }`}>
-                      Risk: {loc.riskCategory} ({loc.riskScore}/100)
+                    <span className="text-[10px] font-mono font-bold text-cyber-grayText">
+                      {loc.region}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors truncate">
-                    {loc.name}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">{loc.address}, {loc.city}</p>
+                  {/* Visual Preview Box */}
+                  <div className="h-32 rounded-2xl bg-white border border-cyber-borderLight flex flex-col items-center justify-center p-3 text-center">
+                    <Building2 className={`h-8 w-8 ${isHero ? 'text-rose-500' : 'text-slate-400'} mb-1`} />
+                    <span className="text-2xl font-black text-black num-tabular">
+                      {loc.complianceScore}%
+                    </span>
+                    <span className="text-[10px] text-cyber-grayText uppercase font-semibold">
+                      Compliance
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-800 text-xs">
-                    <div>
-                      <span className="text-slate-500 text-[10px] uppercase font-bold block">Compliance</span>
-                      <span className="font-mono font-black text-emerald-400 text-sm">{loc.complianceScore}%</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 text-[10px] uppercase font-bold block">Manager</span>
-                      <span className="font-medium text-slate-200 truncate block">{loc.manager}</span>
+                  {/* Details */}
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-cyber-grayText">{loc.code}</span>
+                    <h3 className="text-sm font-bold text-black truncate">{loc.name}</h3>
+                    <p className="text-[11px] text-cyber-grayText truncate">{loc.address}</p>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-cyber-borderLight mt-2">
+                      <span className="text-cyber-grayText">Risk Index:</span>
+                      <strong className={`font-mono ${isHero ? 'text-rose-600' : 'text-black'}`}>
+                        {loc.riskScore}/100
+                      </strong>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-slate-400 text-[11px]">Region: <strong className="text-slate-200">{loc.region}</strong></span>
+                  {/* Cyber Black Button */}
                   <Link
                     href={`/locations/${loc.id}`}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    className="cyber-btn-black text-xs py-2.5 w-full rounded-xl"
                   >
-                    <span>Open Profile</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span>Inspect Store Profile</span>
                   </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        )}
-
-        {/* VIEW 2: DENSE EXECUTIVE TABLE VIEW */}
-        {viewMode === 'table' && (
-          <div className="overflow-x-auto glass-panel rounded-2xl border border-slate-800">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+        ) : (
+          /* TABLE VIEW */
+          <div className="overflow-x-auto rounded-2xl border border-cyber-borderLight">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#FAFAFA] border-b border-cyber-borderLight text-cyber-grayText uppercase font-bold text-[10px]">
+                <tr>
                   <th className="py-3.5 px-4">Code</th>
                   <th className="py-3.5 px-4">Location Name</th>
                   <th className="py-3.5 px-4">Region</th>
-                  <th className="py-3.5 px-4">Manager</th>
-                  <th className="py-3.5 px-4 text-center">Compliance</th>
-                  <th className="py-3.5 px-4 text-center">Risk Score</th>
-                  <th className="py-3.5 px-4 text-center">Category</th>
+                  <th className="py-3.5 px-4">Compliance</th>
+                  <th className="py-3.5 px-4">Risk Score</th>
+                  <th className="py-3.5 px-4">Category</th>
                   <th className="py-3.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80 text-xs">
+              <tbody className="divide-y divide-cyber-borderLight">
                 {sortedLocations.map((loc) => (
-                  <tr key={loc.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-amber-400">{loc.code}</td>
-                    <td className="py-3.5 px-4 font-bold text-white max-w-xs truncate">{loc.name}</td>
-                    <td className="py-3.5 px-4 text-slate-300">{loc.region}</td>
-                    <td className="py-3.5 px-4 text-slate-300 truncate">{loc.manager}</td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-400">{loc.complianceScore}%</td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-white">{loc.riskScore}/100</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                        loc.riskCategory === 'CRITICAL'
-                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                          : loc.riskCategory === 'HIGH'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                      }`}>
+                  <tr key={loc.id} className="hover:bg-[#F9F9F9] transition-colors">
+                    <td className="py-3.5 px-4 font-mono font-bold text-black">{loc.code}</td>
+                    <td className="py-3.5 px-4 font-semibold text-black">{loc.name}</td>
+                    <td className="py-3.5 px-4 text-cyber-grayText">{loc.region}</td>
+                    <td className="py-3.5 px-4 font-bold text-black">{loc.complianceScore}%</td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-black">{loc.riskScore}/100</td>
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`cyber-badge ${
+                          loc.riskCategory === 'CRITICAL'
+                            ? 'bg-rose-100 text-rose-700'
+                            : loc.riskCategory === 'HIGH'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
                         {loc.riskCategory}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
                         href={`/locations/${loc.id}`}
-                        className="px-3 py-1 rounded-lg bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 text-xs font-bold transition-all"
+                        className="cyber-btn-black text-[11px] py-1.5 px-3 rounded-lg"
                       >
                         Inspect
                       </Link>
@@ -440,68 +368,60 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* CREATE LOCATION MODAL */}
+      {/* CREATE STORE MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg glass-panel-glow rounded-3xl p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-black text-white flex items-center gap-2">
-              <Plus className="h-5 w-5 text-amber-400" /> Register Franchise Location
-            </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="cyber-card p-6 w-full max-w-md bg-white space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-cyber-borderLight pb-3">
+              <h3 className="text-base font-bold text-black">Register New Franchise Store</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-black">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-            <form onSubmit={handleCreateLocation} className="space-y-4">
+            <form onSubmit={handleCreateLocation} className="space-y-3 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Location Code *</label>
+                <label className="block text-cyber-grayText font-semibold mb-1">Store Code</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. LOC-051"
+                  placeholder="LOC-051"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#F5F5F7] p-2.5 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Location Name *</label>
+                <label className="block text-cyber-grayText font-semibold mb-1">Store Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. BurgerCraft #51 (Austin Downtown)"
+                  placeholder="BurgerCraft #51 (Phoenix)"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#F5F5F7] p-2.5 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Address *</label>
+                <label className="block text-cyber-grayText font-semibold mb-1">Address</label>
                 <input
                   type="text"
                   required
-                  placeholder="Street Address"
+                  placeholder="500 Desert Ridge Way"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#F5F5F7] p-2.5 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Store Manager</label>
-                <input
-                  type="text"
-                  placeholder="Manager Name"
-                  value={manager}
-                  onChange={(e) => setManager(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Operational Region</label>
+                <label className="block text-cyber-grayText font-semibold mb-1">Region</label>
                 <select
                   value={region}
                   onChange={(e) => setRegion(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#F5F5F7] p-2.5 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
                 >
                   <option value="North East">North East</option>
                   <option value="South East">South East</option>
@@ -511,26 +431,38 @@ export default function DashboardPage() {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div>
+                <label className="block text-cyber-grayText font-semibold mb-1">Store Manager</label>
+                <input
+                  type="text"
+                  placeholder="Alex Mercer"
+                  value={manager}
+                  onChange={(e) => setManager(e.target.value)}
+                  className="w-full bg-[#F5F5F7] p-2.5 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                  className="cyber-btn-white py-2 px-4 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-5 py-2 text-xs font-extrabold text-white rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-md"
+                  className="cyber-btn-black py-2 px-4 rounded-xl disabled:opacity-50"
                 >
-                  {creating ? 'Registering...' : 'Register Location'}
+                  {creating ? 'Saving...' : 'Create Location'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -8,52 +8,43 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#070a12',
-        surface: '#0d1527',
-        card: '#111a2e',
-        border: '#1e293b',
-        primary: {
-          DEFAULT: '#f59e0b',
-          hover: '#d97706',
-          light: '#fbbf24',
-        },
         cyber: {
-          cyan: '#06b6d4',
-          blue: '#3b82f6',
-          indigo: '#6366f1',
-          purple: '#8b5cf6',
+          dark: '#000000',
+          cardDark: '#181818',
+          cardLight: '#F6F6F6',
+          cardHover: '#F0F0F0',
+          banner: '#211C24',
+          grayText: '#909090',
+          darkText: '#1D1D1F',
+          borderLight: '#EBEBEB',
+          borderDark: '#2E2E2E',
+        },
+        primary: {
+          DEFAULT: '#000000',
+          hover: '#2D2D2D',
         },
         accent: {
-          cyan: '#06b6d4',
-          emerald: '#10b981',
-          amber: '#f59e0b',
-          rose: '#f43f5e',
-          purple: '#8b5cf6',
+          amber: '#F59E0B',
+          emerald: '#10B981',
+          rose: '#F43F5E',
+          cyan: '#06B6D4',
+          purple: '#8B5CF6',
         }
       },
-      backgroundImage: {
-        'radial-gradient': 'radial-gradient(circle at 50% 0%, var(--tw-gradient-stops))',
-        'grid-pattern': "radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px)",
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
-      animation: {
-        'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float-slow': 'float 6s ease-in-out infinite',
-        'shimmer': 'shimmer 2.5s linear infinite',
+      borderRadius: {
+        '2xl': '16px',
+        '3xl': '24px',
+        '4xl': '32px',
       },
-      keyframes: {
-        pulseGlow: {
-          '0%, 100%': { opacity: '0.8', filter: 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.5))' },
-          '50%': { opacity: '1', filter: 'drop-shadow(0 0 24px rgba(245, 158, 11, 0.8))' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-6px)' },
-        },
-        shimmer: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
-        },
-      },
+      boxShadow: {
+        'cyber-sm': '0 2px 8px rgba(0, 0, 0, 0.06)',
+        'cyber-md': '0 8px 24px rgba(0, 0, 0, 0.08)',
+        'cyber-lg': '0 16px 36px rgba(0, 0, 0, 0.12)',
+        'cyber-dark': '0 20px 40px rgba(0, 0, 0, 0.6)',
+      }
     },
   },
   plugins: [],

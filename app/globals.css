@@ -3,26 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --background: 6 9 19;
-  --foreground: 248 250 252;
+  --background: 255 255 255;
+  --foreground: 29 29 31;
 }
 
 body {
-  color: rgb(var(--foreground));
-  background-color: #060913;
+  color: #1D1D1F;
+  background-color: #FFFFFF;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(245, 158, 11, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(6, 182, 212, 0.05), transparent),
-    radial-gradient(ellipse 60% 50% at 10% 30%, rgba(99, 102, 241, 0.04), transparent);
-  background-attachment: fixed;
-}
-
-/* Precision Background Dot Grid */
-.bg-dot-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 /* Custom scrollbars */
@@ -31,64 +20,103 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #060913;
+  background: #F6F6F6;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #D4D4D8;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #A1A1AA;
 }
 
-/* Ultra-Luxury Glassmorphic Panels */
-.glass-panel {
-  background: rgba(11, 18, 36, 0.78);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+/* Cyber Design System Cards & Buttons */
+.cyber-card {
+  background-color: #FAFAFA;
+  border: 1px solid #EBEBEB;
+  border-radius: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-panel-glow {
-  background: rgba(14, 22, 44, 0.85);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.2), 0 20px 40px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.glass-card {
-  background: rgba(11, 18, 36, 0.65);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-card:hover {
-  background: rgba(15, 25, 50, 0.85);
-  border-color: rgba(245, 158, 11, 0.35);
+.cyber-card:hover {
+  background-color: #FFFFFF;
+  border-color: #D4D4D8;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
-  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.7), 0 0 25px -5px rgba(245, 158, 11, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Metallic Platinum & Champagne Typography Gradients */
-.text-gradient-platinum {
-  background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 65%, #94A3B8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.cyber-card-dark {
+  background-color: #141414;
+  border: 1px solid #282828;
+  border-radius: 16px;
+  color: #FFFFFF;
 }
 
-.text-gradient-gold {
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.cyber-btn-black {
+  background-color: #000000;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.text-gradient-cyan {
-  background: linear-gradient(135deg, #A5F3FC 0%, #06B6D4 50%, #0284C7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.cyber-btn-black:hover {
+  background-color: #262626;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.cyber-btn-white {
+  background-color: #FFFFFF;
+  color: #000000;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #EBEBEB;
+}
+
+.cyber-btn-white:hover {
+  background-color: #F4F4F6;
+  border-color: #000000;
+}
+
+.cyber-btn-outline-white {
+  background-color: transparent;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 12px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cyber-btn-outline-white:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
+}
+
+.cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .num-tabular {

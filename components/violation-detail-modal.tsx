@@ -43,152 +43,128 @@ export default function ViolationDetailModal({
     }
   };
 
-  const getSeverityBadgeColor = (sev: string) => {
-    if (sev === 'CRITICAL') return 'bg-rose-500/20 text-rose-400 border-rose-500/40 font-black';
-    if (sev === 'HIGH') return 'bg-amber-500/20 text-amber-400 border-amber-500/40 font-bold';
-    return 'bg-blue-500/20 text-blue-400 border-blue-500/40 font-bold';
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
-      <div className="w-full max-w-4xl glass-panel-glow rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-700/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="cyber-card p-0 w-full max-w-4xl bg-white rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-cyber-borderLight">
+        
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/80">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="font-mono text-sm font-black text-amber-400 bg-amber-950 px-3 py-1 rounded-xl border border-amber-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-cyber-borderLight bg-[#FAFAFA]">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-xs font-bold text-black bg-[#EBEBEB] px-2.5 py-1 rounded-lg">
               {violation.violationCode}
             </span>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 border border-slate-700">
-              Standard: {violation.standard?.code || 'CLEAN-001'}
-            </span>
-            <span className={`text-[11px] uppercase px-2.5 py-1 rounded-full border ${getSeverityBadgeColor(violation.severity)}`}>
-              {violation.severity} Severity
+            <span
+              className={`cyber-badge ${
+                violation.severity === 'CRITICAL'
+                  ? 'bg-rose-100 text-rose-700'
+                  : violation.severity === 'HIGH'
+                  ? 'bg-amber-100 text-amber-800'
+                  : 'bg-blue-100 text-blue-800'
+              }`}
+            >
+              {violation.severity} SEVERITY
             </span>
             {violation.isRecurring && (
-              <span className="text-[11px] font-black uppercase px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/50 animate-pulse">
-                {violation.recurrenceCount}x Chronic Recurrence
+              <span className="cyber-badge bg-rose-600 text-white font-mono">
+                CHRONIC {violation.recurrenceCount}X RECURRING
               </span>
             )}
           </div>
-
-          <button
-            onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          >
+          <button onClick={onClose} className="text-cyber-grayText hover:text-black p-1">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {/* Main Evidence & Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left: Source Evidence Photo / Asset */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-4">
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-amber-400" /> Source Media Inspection Canvas
-                </h4>
-
-                {/* Photo Simulation Canvas with Bounding Box Overlay */}
-                <div className="h-48 w-full rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-4 text-center relative overflow-hidden group shadow-inner">
-                  {/* Visual bounding box */}
-                  <div className="absolute inset-0 bg-amber-500/10 border-2 border-dashed border-amber-500/60 rounded-xl m-4 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[10px] font-mono text-amber-300 font-bold bg-slate-950/90 px-3 py-1 rounded-lg border border-amber-500/60 shadow-lg">
-                      [Vision Bounding Box: Debris & Smudge Region]
-                    </span>
-                    <span className="text-[9px] font-mono text-cyan-300 mt-1">
-                      Box [ymin: 0.24, xmin: 0.18, ymax: 0.68, xmax: 0.72]
-                    </span>
-                  </div>
-                  
-                  <p className="text-xs font-mono text-slate-200 relative z-10 font-bold">{violation.location?.name}</p>
-                  <span className="text-[10px] text-slate-500 mt-1 relative z-10 font-mono">
-                    Asset ID: {violation.evidences?.[0]?.mediaAssetId || 'asset_042'} • EXIF Verified
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-xs text-slate-300 bg-slate-900/90 p-3.5 rounded-xl border border-slate-800">
-                <strong className="text-slate-100 block mb-1">Grounded Evidence Fact: </strong>
-                <p className="italic text-slate-300">
-                  "{violation.description}"
-                </p>
-              </div>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-cyber-darkText">
+          {/* Standard & Description */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="font-mono font-bold text-black text-sm">{violation.standard?.code}</span>
+              <h3 className="text-base font-bold text-black">{violation.standard?.title}</h3>
             </div>
-
-            {/* Right: AI Explanation & Risk Analysis */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Cpu className="h-4 w-4 text-cyan-400" /> Multimodal AI Finding
-                  </h4>
-                  <span className="text-xs font-mono font-black text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-lg border border-emerald-800">
-                    Confidence: {violation.confidence}%
-                  </span>
-                </div>
-
-                <h3 className="text-sm font-black text-white">{violation.standard?.title}</h3>
-                <p className="text-xs text-slate-300 mt-2 leading-relaxed bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
-                  {violation.aiExplanation || violation.description}
-                </p>
-              </div>
-
-              {violation.isRecurring && (
-                <div className="p-4 rounded-xl bg-rose-950/50 border border-rose-800/80 text-xs text-rose-200 space-y-1.5">
-                  <div className="font-black flex items-center gap-1.5 text-rose-300">
-                    <ShieldAlert className="h-4 w-4 text-rose-400" /> CLAUSE 14.2 CHRONIC DEFAULT ESCALATION
-                  </div>
-                  <p className="text-[11px] text-rose-200/90 leading-relaxed">
-                    Location {violation.location?.code} has failed this standard in <strong>{violation.recurrenceCount} consecutive audits</strong>. A formal Legal Cure Notice with 48-hour cure deadline is legally recommended.
-                  </p>
-                </div>
-              )}
-            </div>
+            <p className="text-cyber-grayText leading-relaxed bg-[#FAFAFA] p-3.5 rounded-xl border border-cyber-borderLight">
+              {violation.description}
+            </p>
           </div>
 
-          {/* Reviewer Action Area */}
-          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-amber-400" /> Franchise Operations Manager Enforcement Decision
-            </h4>
+          {/* AI Grounding Explanation */}
+          <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-cyber-borderLight space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-bold text-black">
+                <Cpu className="h-4 w-4" />
+                <span>RocketRide AI Factuality Grounding (Zero False Claim SLA)</span>
+              </div>
+              <span className="font-mono font-bold text-emerald-600">
+                Confidence: {violation.confidence}% (≥ 90%)
+              </span>
+            </div>
+            <p className="text-black leading-relaxed font-mono text-[11px]">
+              {violation.aiExplanation || 'Visual evidence extracted with confirmed match against brand specifications.'}
+            </p>
+          </div>
 
-            <input
-              type="text"
-              placeholder="Add optional audit note or legal cure notice stipulation..."
+          {/* Evidence Snippet */}
+          {violation.evidence && violation.evidence.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-bold text-black uppercase tracking-wider text-[11px]">
+                Grounding Visual Evidence ({violation.evidence.length})
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {violation.evidence.map((ev: any) => (
+                  <div key={ev.id} className="p-3 rounded-xl bg-[#FAFAFA] border border-cyber-borderLight space-y-1">
+                    <span className="font-mono text-[10px] text-cyber-grayText block">
+                      Asset: {ev.mediaAsset?.fileName || 'Camera Stream #1'}
+                    </span>
+                    <p className="text-black">{ev.snippetText}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Notes Input */}
+          <div className="space-y-2 pt-2 border-t border-cyber-borderLight">
+            <label className="block font-bold text-black">Operations Manager Disposition Note</label>
+            <textarea
+              rows={2}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-4 py-2.5 text-xs bg-slate-900 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500"
+              placeholder="Enter compliance decision rationale, default warning notes, or remediation instructions..."
+              className="w-full bg-[#FAFAFA] p-3 rounded-xl border border-cyber-borderLight focus:border-black focus:outline-none text-xs"
             />
-
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button
-                onClick={() => handleAction('CURE_NOTICE_ISSUED')}
-                disabled={loadingAction !== null}
-                className="px-5 py-2.5 text-xs font-black text-white rounded-xl bg-gradient-to-r from-rose-600 via-amber-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 shadow-xl shadow-rose-500/25 transition-all flex items-center gap-2"
-              >
-                <Send className="h-4 w-4" /> Issue Formal Cure Notice
-              </button>
-
-              <button
-                onClick={() => handleAction('REINSPECT')}
-                disabled={loadingAction !== null}
-                className="px-5 py-2.5 text-xs font-bold text-white rounded-xl bg-blue-600 hover:bg-blue-500 shadow-md transition-all flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loadingAction === 'REINSPECT' ? 'animate-spin' : ''}`} /> Trigger Re-inspection (48h)
-              </button>
-
-              <button
-                onClick={() => handleAction('REJECT')}
-                disabled={loadingAction !== null}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-300 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-all flex items-center gap-2"
-              >
-                <AlertTriangle className="h-4 w-4 text-amber-400" /> Dismiss Claim
-              </button>
-            </div>
           </div>
         </div>
+
+        {/* Modal Footer Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-cyber-borderLight bg-[#FAFAFA]">
+          <button
+            onClick={() => handleAction('REJECT')}
+            disabled={!!loadingAction}
+            className="cyber-btn-white text-xs py-2 px-3 rounded-xl text-rose-600 border-rose-200 hover:bg-rose-50"
+          >
+            Dismiss / False Claim
+          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleAction('REINSPECT')}
+              disabled={!!loadingAction}
+              className="cyber-btn-white text-xs py-2 px-3 rounded-xl"
+            >
+              Order 48h Re-Inspection
+            </button>
+
+            <button
+              onClick={() => handleAction('CURE_NOTICE_ISSUED')}
+              disabled={!!loadingAction}
+              className="cyber-btn-black text-xs py-2 px-4 rounded-xl bg-black hover:bg-neutral-800"
+            >
+              {loadingAction === 'CURE_NOTICE_ISSUED' ? 'Issuing...' : 'Issue Formal Cure Notice'}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );

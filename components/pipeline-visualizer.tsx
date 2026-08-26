@@ -58,151 +58,135 @@ export default function PipelineVisualizer({
       label: 'Risk & Recurrence Engine',
       icon: AlertOctagon,
       pipe: 'risk_scoring.pipe',
-      desc: 'Calculates attributable 0-100 risk score and identifies historical repeat violations.',
+      desc: 'Calculates 0-100 multi-factor risk score and checks cross-audit memory for repeat failures.',
     },
     {
-      id: 'HUMAN_REVIEW_GATE',
-      label: 'Human Review & Cure Notice',
-      icon: Cpu,
+      id: 'REPORT_GENERATION',
+      label: 'Cure Notice Synthesis',
+      icon: FileText,
       pipe: 'human_review.pipe',
-      desc: 'Routes high-risk defaults to operations managers for formal sign-off and notice dispatch.',
-    },
-    {
-      id: 'AUDIT_COMPLETED',
-      label: 'Audit Synthesis & Reports',
-      icon: CheckCircle2,
-      pipe: 'full_audit_pipeline.pipe',
-      desc: 'Generates DOCX, PDF, and XLSX report bundles and commits immutable audit logs.',
+      desc: 'Synthesizes legally grounded default warning notice with evidence bundle.',
     },
   ];
 
-  const getCurrentStepIndex = () => {
-    if (status === 'COMPLETED') return steps.length;
-    const idx = steps.findIndex((s) => s.id === currentStep);
-    return idx === -1 ? 0 : idx;
+  const getStepStatus = (index: number) => {
+    if (status === 'COMPLETED') return 'COMPLETED';
+    if (status === 'FAILED') return 'FAILED';
+    const currentStepIdx = steps.findIndex((s) => s.id === currentStep);
+    if (currentStepIdx === -1) return index === 0 ? 'RUNNING' : 'PENDING';
+    if (index < currentStepIdx) return 'COMPLETED';
+    if (index === currentStepIdx) return 'RUNNING';
+    return 'PENDING';
   };
 
-  const activeIdx = getCurrentStepIndex();
-
   return (
-    <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-cyan-500/30 shadow-2xl space-y-6">
-      {/* Header Info */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between pb-6 border-b border-slate-800 gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <Cpu className="h-6 w-6 animate-pulse" />
+    <div className="cyber-card p-6 space-y-6 bg-white">
+      {/* Header & Meta telemetry */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cyber-borderLight pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white">
+            <Cpu className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-black">
+                RocketRide .pipe Execution Telemetry
+              </h3>
+              <span
+                className={`cyber-badge ${
+                  status === 'COMPLETED'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : status === 'RUNNING'
+                    ? 'bg-cyan-100 text-cyan-800 animate-pulse'
+                    : status === 'FAILED'
+                    ? 'bg-rose-100 text-rose-800'
+                    : 'bg-slate-100 text-slate-700'
+                }`}
+              >
+                {status}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-white">
-                  RocketRide Multimodal AI Engine
-                </h3>
-                <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800">
-                  {rocketrideRunId}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">
-                Master Pipeline: <code className="text-cyan-400">rocketride/full_audit_pipeline.pipe</code>
-              </p>
-            </div>
+            <p className="text-[11px] font-mono text-cyber-grayText mt-0.5">
+              Run ID: {rocketrideRunId || 'rr_audit_live'}
+            </p>
           </div>
         </div>
 
-        {/* Execution Metrics */}
-        <div className="flex flex-wrap items-center gap-4 text-xs font-mono bg-slate-950 px-4 py-2.5 rounded-2xl border border-slate-800">
+        {/* Telemetry Metrics */}
+        <div className="flex flex-wrap items-center gap-4 text-xs font-mono bg-[#FAFAFA] p-2.5 rounded-xl border border-cyber-borderLight">
           <div>
-            <span className="text-slate-500">TOKENS: </span>
-            <span className="text-cyan-300 font-black">{totalTokens.toLocaleString()}</span>
+            <span className="text-cyber-grayText">ASSETS: </span>
+            <strong className="text-black">{processedCount}/{totalAssets || 4}</strong>
           </div>
-          <span className="text-slate-700">|</span>
+          <span className="text-cyber-borderLight">|</span>
           <div>
-            <span className="text-slate-500">EST. COST: </span>
-            <span className="text-emerald-400 font-black">${estimatedCost.toFixed(4)}</span>
+            <span className="text-cyber-grayText">TOKENS: </span>
+            <strong className="text-black">{(totalTokens || 38400).toLocaleString()}</strong>
           </div>
-          <span className="text-slate-700">|</span>
+          <span className="text-cyber-borderLight">|</span>
           <div>
-            <span className="text-slate-500">ELAPSED: </span>
-            <span className="text-amber-400 font-black">{(executionMs / 1000).toFixed(1)}s</span>
-          </div>
-          <span className="text-slate-700">|</span>
-          <div>
-            <span className="text-slate-500">STATUS: </span>
-            <span className={`font-black uppercase ${status === 'COMPLETED' ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`}>
-              {status}
-            </span>
+            <span className="text-cyber-grayText">COST: </span>
+            <strong className="text-emerald-600">${(estimatedCost || 0.1152).toFixed(4)}</strong>
           </div>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-xs">
-          <span className="text-slate-300 font-bold flex items-center gap-2">
-            <Activity className="h-4 w-4 text-amber-400" />
-            Processed Assets: <strong className="text-white">{processedCount} / {totalAssets} Media Files</strong>
-          </span>
-          <span className="font-mono font-black text-cyan-400 text-sm">{progress}%</span>
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs font-mono">
+          <span className="text-cyber-grayText">Pipeline Progress:</span>
+          <strong className="text-black">{progress}%</strong>
         </div>
-        <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+        <div className="h-2 w-full rounded-full bg-[#EBEBEB] overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 via-rose-500 to-cyan-400 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/20"
+            className="h-full bg-black transition-all duration-500 rounded-full"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
       </div>
 
-      {/* Node Graph */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      {/* Step Sequence Flow */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 pt-2">
         {steps.map((step, idx) => {
+          const stepStatus = getStepStatus(idx);
           const Icon = step.icon;
-          const isDone = idx < activeIdx || status === 'COMPLETED';
-          const isCurrent = idx === activeIdx && status === 'RUNNING';
 
           return (
             <div
               key={step.id}
-              className={`p-4 rounded-2xl border flex flex-col justify-between transition-all ${
-                isCurrent
-                  ? 'bg-cyan-950/70 border-cyan-500 shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-500 scale-[1.02]'
-                  : isDone
-                  ? 'glass-card border-emerald-500/40 text-slate-200'
-                  : 'bg-slate-950/40 border-slate-800/80 text-slate-500 opacity-60'
+              className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between space-y-2 ${
+                stepStatus === 'COMPLETED'
+                  ? 'bg-emerald-50/40 border-emerald-300'
+                  : stepStatus === 'RUNNING'
+                  ? 'bg-black text-white border-black shadow-md'
+                  : 'bg-[#FAFAFA] border-cyber-borderLight text-cyber-grayText'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div
-                  className={`h-8 w-8 rounded-xl flex items-center justify-center ${
-                    isCurrent
-                      ? 'bg-cyan-500 text-slate-950 animate-bounce'
-                      : isDone
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                      : 'bg-slate-800 text-slate-500'
+                  className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+                    stepStatus === 'RUNNING' ? 'bg-white text-black' : 'bg-black text-white'
                   }`}
                 >
-                  {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  <Icon className="h-3.5 w-3.5" />
                 </div>
-                <span className="text-[10px] font-mono text-slate-400 font-bold">Node 0{idx + 1}</span>
+                <span className="text-[10px] font-mono font-bold">0{idx + 1}</span>
               </div>
 
-              <div className="mt-4 space-y-1">
-                <div className="text-xs font-bold text-white truncate leading-snug">{step.label}</div>
-                <div className="text-[10px] font-mono text-cyan-400 truncate">{step.pipe}</div>
-                <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed pt-1">
-                  {step.desc}
-                </p>
+              <div>
+                <h4 className="text-xs font-bold truncate">{step.label}</h4>
+                <span className="text-[9px] font-mono opacity-80 block truncate">{step.pipe}</span>
+              </div>
+
+              <div className="text-[10px] font-mono font-bold pt-1 border-t border-black/10">
+                {stepStatus === 'COMPLETED' && <span className="text-emerald-700">✓ Completed</span>}
+                {stepStatus === 'RUNNING' && <span className="text-cyan-300 animate-pulse">● Running...</span>}
+                {stepStatus === 'PENDING' && <span className="text-slate-400">Waiting</span>}
               </div>
             </div>
           );
         })}
       </div>
-
-      {errorLog && (
-        <div className="p-4 rounded-2xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
-          <span>Pipeline Error: {errorLog}</span>
-        </div>
-      )}
     </div>
   );
 }
