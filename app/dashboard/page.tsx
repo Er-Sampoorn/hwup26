@@ -6,7 +6,7 @@ import {
   Plus, Building2, ShieldCheck, Cpu, ArrowRight, Sparkles, CheckCircle2,
   Clock, FileText, AlertTriangle, Layers, AlertOctagon, RefreshCw, MapPin,
   Search, Filter, LayoutGrid, List, SlidersHorizontal, ArrowUpDown, ChevronRight,
-  TrendingDown, TrendingUp, UserCheck
+  TrendingDown, TrendingUp, UserCheck, CloudUpload, Server, Check
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -19,6 +19,12 @@ export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Staging Integration State
+  const [stagingInfo, setStagingInfo] = useState<any>(null);
+  const [stagingDeploying, setStagingDeploying] = useState(false);
+  const [stagingResult, setStagingResult] = useState<any>(null);
+  const [showStagingModal, setShowStagingModal] = useState(false);
+
   // Form State
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -26,6 +32,35 @@ export default function DashboardPage() {
   const [region, setRegion] = useState('North East');
   const [manager, setManager] = useState('');
   const [creating, setCreating] = useState(false);
+
+  const fetchStagingInfo = async () => {
+    try {
+      const res = await fetch('/api/rocketride/staging');
+      const data = await res.json();
+      if (data.success) {
+        setStagingInfo(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch staging info', err);
+    }
+  };
+
+  const handleDeployToStaging = async () => {
+    setStagingDeploying(true);
+    try {
+      const res = await fetch('/api/rocketride/staging', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setStagingResult(data.deployment);
+        setShowStagingModal(true);
+        fetchStagingInfo();
+      }
+    } catch (err) {
+      console.error('Staging deployment error', err);
+    } finally {
+      setStagingDeploying(false);
+    }
+  };
 
   const fetchLocations = async () => {
     setLoading(true);
@@ -49,6 +84,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchLocations();
+    fetchStagingInfo();
   }, [selectedRegion, selectedRisk, searchTerm]);
 
   const handleCreateLocation = async (e: React.FormEvent) => {
@@ -115,6 +151,24 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={handleDeployToStaging}
+            disabled={stagingDeploying}
+            className="px-4 py-2 text-xs font-bold text-white rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2"
+          >
+            {stagingDeploying ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin text-emerald-200" />
+                Deploying to Staging...
+              </>
+            ) : (
+              <>
+                <CloudUpload className="h-4 w-4 text-emerald-200" />
+                Deploy to RocketRide Staging
+              </>
+            )}
+          </button>
+
+          <button
             onClick={fetchLocations}
             className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 transition-colors shadow-sm"
             title="Refresh Telemetry"
@@ -131,10 +185,50 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* RocketRide Staging Integration Banner */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border border-emerald-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+            <Server className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="text-xs font-bold text-emerald-300 uppercase tracking-wide">
+                ROCKETRIDE STAGING PROCESS INTEGRATED
+              </span>
+              <span className="font-mono text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded border border-emerald-800">
+                PROMO: INDIAHACK
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Endpoint: <strong className="text-white font-mono font-normal">https://staging.rocketride.ai</strong> • {stagingInfo?.pipeCount || 15} Declarative <code className="text-emerald-300">.pipe</code> Pipelines Ready
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <button
+            onClick={handleDeployToStaging}
+            className="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 border border-emerald-500/40 font-semibold transition-all flex items-center gap-1.5"
+          >
+            <CloudUpload className="h-3.5 w-3.5" /> Sync .pipe Package
+          </button>
+          {stagingResult && (
+            <button
+              onClick={() => setShowStagingModal(true)}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium transition-all"
+            >
+              View Deployment Logs
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 2. KPI OVERVIEW STRIP */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <div className="p-4 rounded-2xl glass-card border border-slate-800 flex flex-col justify-between">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Network</span>
+          <span className="text-[11px] font-semibold uppercase text-slate-400">Total Locations</span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-2xl font-black text-white num-tabular">{locations.length}</span>
             <span className="text-[10px] text-blue-400 font-mono">5 Regions</span>
@@ -528,6 +622,58 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Staging Deployment Logs Modal */}
+      {showStagingModal && stagingResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+          <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <CloudUpload className="h-5 w-5 text-emerald-400" /> RocketRide Staging Deployment Manifest
+              </h3>
+              <span className="font-mono text-xs text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                {stagingResult.deploymentId}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span className="text-slate-400 text-[10px] block">TARGET URL</span>
+                <span className="font-mono text-emerald-300 font-bold">{stagingResult.stagingUrl}</span>
+              </div>
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span className="text-slate-400 text-[10px] block">PROMO CODE</span>
+                <span className="font-mono text-cyan-300 font-bold">{stagingResult.promoCode} ({stagingResult.promoStatus})</span>
+              </div>
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                <span className="text-slate-400 text-[10px] block">PIPELINES ACTIVE</span>
+                <span className="font-mono text-amber-300 font-bold">{stagingResult.pipesCount} .pipe files</span>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-xs font-semibold text-slate-300 block mb-1">Live Execution Logs:</span>
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl font-mono text-[11px] text-slate-300 max-h-60 overflow-y-auto space-y-1">
+                {stagingResult.logs?.map((log: string, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <span className="text-emerald-500 font-bold">&gt;</span>
+                    <span>{log}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowStagingModal(false)}
+                className="px-4 py-2 text-xs font-bold text-white rounded-xl bg-slate-800 hover:bg-slate-700"
+              >
+                Close Logs
+              </button>
+            </div>
           </div>
         </div>
       )}

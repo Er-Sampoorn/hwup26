@@ -103,6 +103,27 @@ IMAGE AGENT                  VIDEO AGENT                  TEXT AGENT
 
 ---
 
+## 🌐 RocketRide Staging Process Integration & Deployment
+
+FranchiseGuard AI is fully integrated into the **RocketRide Staging Process** (`staging.rocketride.ai`) using promo code **`INDIAHACK`**.
+
+### 1. Deploy .pipe Pipelines to RocketRide Cloud Staging
+```bash
+npm run deploy:staging
+# OR
+pnpm run deploy:staging
+```
+
+### 2. Live Dashboard Staging Control Panel
+Launch the application (`npm run dev`) and navigate to `http://localhost:3000/dashboard`.
+The **RocketRide Staging Banner** displays real-time connection status (`staging.rocketride.ai`) and provides 1-click pipeline deployment with live logs.
+
+### 3. API Staging Endpoints
+- `GET /api/rocketride/staging`: Check staging health & active pipeline count.
+- `POST /api/rocketride/staging`: Trigger pipeline deployment to `staging.rocketride.ai`.
+
+---
+
 ## 📦 Quick Start & Execution
 
 ### 1. Sync Database Schema
@@ -115,24 +136,31 @@ npx prisma db push
 npm run seed
 ```
 
-### 3. Run Test Suite
+### 3. Deploy to RocketRide Staging
+```bash
+npm run deploy:staging
+```
+
+### 4. Run Test Suite
 ```bash
 npm test
 ```
 
-### 4. Build Next.js Production App
+### 5. Build Next.js Production App
 ```bash
 npm run build
 ```
 
-### 5. Start Application
+### 6. Start Application
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) and click **"Load Franchise Demo Dataset"** or **"Instant Demo Login"** to audit Location #042 (4-time recurring violation, Risk 82/100)!
+Open [http://localhost:3000](http://localhost:3000) and click **"Load Franchise Demo Dataset"** or **"Deploy to RocketRide Staging"**!
 
 ---
 
 ## 🌐 GitHub Repository & Deployment
 - **GitHub Repo:** [https://github.com/Er-Sampoorn/hwup26.git](https://github.com/Er-Sampoorn/hwup26.git)
 - **Deployment Platform:** Vercel (Next.js 14)
+- **Staging Platform:** RocketRide Cloud Staging (`https://staging.rocketride.ai`)
+

@@ -89,6 +89,11 @@ export default function Navbar() {
               <AlertOctagon className="h-4 w-4 text-rose-400" />
               <span>Hero Case (LOC-042)</span>
             </Link>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-xs font-semibold text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>Staging: <strong className="text-emerald-200 font-mono">staging.rocketride.ai</strong></span>
+            </div>
           </nav>
         </div>
 
